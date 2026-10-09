@@ -132,10 +132,11 @@ def main():
         else:
             print(f"  {key:<16}: {value}")
 
-    # 保存JSON
+    # 保存 JSON。文件名固定为 latest.json——每次运行覆盖上一份，
+    # 避免仓库里堆积大量中间态报告。需要留存历史时手动重命名归档。
     OUTPUT_DIR.mkdir(exist_ok=True)
+    out_file = OUTPUT_DIR / "latest.json"
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_file = OUTPUT_DIR / f"report_{stamp}.json"
     payload = {
         "generated_at": stamp,
         "summary": summary,
