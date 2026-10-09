@@ -1,0 +1,106 @@
+"""安全边界模块。
+
+对应任务目标第2 项：设计角色设定、语气与安全边界，明确它不做什么。
+
+设计原则：
+1. 危机识别优先于一切对话策略——命中风险时立即中断常规流程。
+2. 边界不靠模型自觉，靠代码硬拦截 + prompt 双保险。
+3. 智能体明确「不是」什么，比「是」什么更重要。
+"""
+
+from dataclasses import dataclass
+
+
+# 高危信号：自伤 / 自杀 / 伤人风险
+CRISIS_PATTERNS = {
+    "self_harm": [
+        "自杀", "轻生", "不想活", "活不下去", "结束生命",
+        "自残", "割腕", "跳楼", "服药过量", "伤害自己",
+    ],
+    "harm_others": [
+        "杀人", "报复社会", "伤害别人", "同归于尽",
+    ],
+}
+
+# 医疗边界：涉及诊断与处方时必须转介
+MEDICAL_BOUNDARY_PATTERNS = [
+    "我是不是抑郁症", "帮我诊断", "开点药", "吃什么药",
+    "是不是焦虑症", "帮我看看是不是有病",
+]
+
+
+@dataclass
+class SafetyVerdict:
+    """一次安全检查的结论。"""
+
+    is_crisis: bool
+    crisis_type: str | None
+    reason: str
+    # 是否属于医疗边界（需转介但不阻断对话）
+    needs_referral: bool = False
+
+
+def check_safety(user_input: str) -> SafetyVerdict:
+    """
+    对用户输入做安全检查。
+
+    采用关键词匹配作为确定性兜底。生产环境应叠加分类模型，
+    但关键词方案可解释、可评测，符合本作业的评测要求。
+    """
+    text = user_input.strip().lower()
+
+    for pattern in CRISIS_PATTERNS["self_harm"]:
+        if pattern in text:
+            return SafetyVerdict(
+                is_crisis=True,
+                crisis_type="self_harm",
+                reason=f"命中自伤/自杀相关表述：{pattern}",
+                needs_referral=True,
+            )
+
+    for pattern in CRISIS_PATTERNS["harm_others"]:
+        if pattern in text:
+            return SafetyVerdict(
+                is_crisis=True,
+                crisis_type="harm_others",
+                reason=f"命中伤人相关表述：{pattern}",
+                needs_referral=True,
+            )
+
+    for pattern in MEDICAL_BOUNDARY_PATTERNS:
+        if pattern in text:
+            return SafetyVerdict(
+                is_crisis=False,
+                crisis_type=None,
+                reason=f"涉及心理疾病诊断或处方：{pattern}",
+                needs_referral=True,
+            )
+
+    return SafetyVerdict(
+        is_crisis=False,
+        crisis_type=None,
+        reason="未检出风险信号",
+    )
+
+
+# 危机场景下的固定回应模板。
+# 依据：心理危机干预指引中的「陪伴—倾听—鼓励求助」三步原则。
+CRISIS_RESPONSE_TEMPLATE = (
+    "听起来你现在承受着很重的痛苦，谢谢你愿意说出来。\n\n"
+    "我需要很认真地告诉你：我是一个 AI 陪伴助手，我没有办法替代真正能帮到你的人。"
+    "但你现在的感受是真实的，也是重要的。\n\n"
+    "我想邀请你做一件事：请拨打 **24 小时心理援助热线**\n"
+    "  - 全国统一心理援助热线：**12356**\n"
+    "  - 北京心理危机研究与干预中心：**010-82951332**\n"
+    "  - 希望24热线：**4001619995**\n\n"
+    "也可以直接去学校心理咨询中心，或者联系信任的家人、朋友、老师陪你去。\n\n"
+    "你愿意的话，可以再多说一点，此刻你心里最强烈的感觉是什么？"
+)
+
+MEDICAL_REFUSAL_TEMPLATE = (
+    "这个问题涉及心理健康的诊断和用药，我没有办法给你判断——"
+    "因为我可能出错，而错误的判断会误导你。\n\n"
+    "我能做的是听你说说最近的状态。\n"
+    "如果你愿意，可以告诉我：这种状态持续多久了？是否影响到睡眠、饮食或者上课？\n\n"
+    "如果确实需要评估，学校的心理咨询中心或者医院心理科是最可靠的选择。"
+)
