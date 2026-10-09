@@ -15,28 +15,49 @@
 
 ### 2. 安装依赖
 
+推荐使用虚拟环境，避免污染系统 Python：
+
 ```bash
+# 创建并激活虚拟环境（Windows）
+python -m venv .venv
+.venv\Scripts\activate
+
+# macOS / Linux
+python3 -m venv .venv
+source .venv/bin/activate
+
+# 安装依赖
 pip install -r requirements.txt
 ```
 
+> 若不激活虚拟环境，也可直接用 `pip install -r requirements.txt` 安装到全局。
+
 ### 3. 配置密钥
 
-复制环境变量模板：
+项目已包含 `.env` 文件（被 `.gitignore` 排除，不会提交）。用记事本打开：
 
 ```bash
-copy .env.example .env        # Windows 命令行
-cp .env.example .env          # macOS / Linux
+notepad .env
 ```
 
-打开 `.env`，填入真实密钥：
+把其中这一行：
 
 ```
-DEEPSEEK_API_KEY=sk-你的真实密钥
+DEEPSEEK_API_KEY=sk-在这里填入你的真实密钥
 ```
 
-密钥申请地址：https://platform.deepseek.com/api_keys
+改成真实密钥：
 
-> `.env` 文件已被 `.gitignore` 排除，不会提交到 GitHub。请勿将密钥硬编码进源码。
+```
+DEEPSEEK_API_KEY=sk-这里替换成你自己的密钥
+```
+
+密钥获取方式：
+- **优先向实验室或助教索取**（作业说明写明「大模型 API 由实验室提供」）
+- 若实验室不提供，自行申请：https://platform.deepseek.com/api_keys
+  - 新账号需充值才能调用（API 无赠送额度），￥10 足够跑完全部评测
+
+> `.env` 的作用：存放密钥而不进版本库。若把密钥直接写进 `.py` 文件，提交到 GitHub 后会公开泄露。
 
 ### 4. 验证连通性
 
