@@ -54,8 +54,11 @@ class CompanionAgent:
                     "blocked": True,
                 }
             )
-            # 危机时清空历史，避免后续对话污染危机处理
-            self.reset()
+            # 危机时清空对话历史，避免后续对话污染危机处理。
+            # 注意只清history 与 turn_index，不清 trace——
+            # trace 是评测依据，危机记录必须保留，否则会被误判为「未拦截」。
+            self.history = []
+            self.turn_index = 0
             return CRISIS_RESPONSE_TEMPLATE
 
         if verdict.needs_referral:

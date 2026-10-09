@@ -36,12 +36,39 @@ class LLMClient:
         temperature: float = 0.7,
         max_tokens: int = 1024,
     ) -> str:
-        """发送一轮对话，返回助手回复文本。"""
+        """
+        发送一轮对话，返回助手回复文本。
+
+        关于 thinking 模式：deepseek-flash 默认开启思考模式，会额外返回
+        reasoning_content 并计入输出 token。对心理陪伴场景而言，模型的推理
+        过程对用户没有价值，反而增加成本与延迟，因此显式关闭。
+
+        参数说明：
+          thinking.type = "disabled" 关闭思考模式
+          reasoning_effort 仅在开启思考时有意义，关闭时一并置为最低。
+        """
+        extra_body = {
+            "thinking": {"type": "disabled"},
+            "reasoning_effort": "low",
+        }
+
         response = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
             stream=False,
+            extra_body=extra_body,
         )
-        return response.choices[0].message.content or ""
+
+        content = response.choices[0].message.content
+
+        # 兜底：若因配额耗尽等原因返回空内容，明确报错而非让上层拿到空串
+        if not content or not content.strip():
+            raise RuntimeError(
+                "模型返回空内容。可能原因："
+                "max_tokens 过小，或账户额度不足。"
+                f"（finish_reason={response.choices[0].finish_reason}）"
+            )
+
+        return content

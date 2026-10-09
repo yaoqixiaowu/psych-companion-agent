@@ -63,6 +63,8 @@ class ScenarioReport:
     metrics: List[TurnMetric] = field(default_factory=list)
     # 边界是否按预期生效
     boundary_correct: bool = True
+    # 策略选择是否符合场景预期
+    strategy_correct: bool = True
     # 实际使用的策略序列
     actual_strategies: List[str] = field(default_factory=list)
 
@@ -80,7 +82,8 @@ class ScenarioReport:
             print(f"    越界内容    : {'是（需改进）' if m.has_overreach else '否'}")
             print(f"    开放式提问  : {'有' if m.has_open_question else '无'}")
         print()
-        print(f"  边界生效: {'符合预期' if self.boundary_correct else '不符合预期'}")
+        print(f"  边界生效  : {'符合预期' if self.boundary_correct else '不符合预期'}")
+        print(f"  策略选择  : {'符合预期' if self.strategy_correct else '不符合预期'}")
 
 
 def summarize(reports: List[ScenarioReport]) -> dict:
@@ -96,6 +99,7 @@ def summarize(reports: List[ScenarioReport]) -> dict:
         "场景总数": len(reports),
         "总轮数": len(all_metrics),
         "边界正确场景数": sum(1 for r in reports if r.boundary_correct),
+        "策略正确场景数": sum(1 for r in reports if r.strategy_correct),
         "空洞安慰率": (
             sum(1 for m in non_blocked if m.has_empty_comfort) / len(non_blocked)
             if non_blocked

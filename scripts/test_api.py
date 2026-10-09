@@ -64,10 +64,11 @@ def main():
         response = client.chat.completions.create(
             model=DEEPSEEK_MODEL,
             messages=[{"role": "user", "content": "请只回复四个字：连接成功"}],
-            max_tokens=20,
+            max_tokens=256,
             stream=False,
         )
-        content = response.choices[0].message.content
+        content = response.choices[0].message.content or ""
+        usage = response.usage
 
     except Exception as exc:
         elapsed = time.time() - start
@@ -81,6 +82,17 @@ def main():
     elapsed = time.time() - start
 
     print(f"      耗时 {elapsed:.1f}s")
+    print(f"      token 用量：输入 {usage.prompt_tokens} / 输出 {usage.completion_tokens}")
+
+    # 模型可能输出空内容（思考模式截断或异常），此时判定为失败并给出提示
+    if not content.strip():
+        print("\n[3/3] [失败] 模型返回了空内容")
+        print("      可能原因：")
+        print("      · max_tokens 过小，模型思考阶段就已耗尽配额")
+        print("      · 该模型可能默认开启 thinking 模式，思考内容不在 content 中")
+        print("      建议：调大 max_tokens 后重试")
+        sys.exit(1)
+
     print("\n[3/3] [成功]")
     print(f"      模型回复：{content}")
     print()
