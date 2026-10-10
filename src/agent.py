@@ -10,6 +10,7 @@ from .llm_client import LLMClient
 from .persona import build_system_prompt
 from .safety import (
     check_safety,
+    check_reply_quality,
     SafetyVerdict,
     CRISIS_RESPONSE_TEMPLATE,
     MEDICAL_REFUSAL_TEMPLATE,
@@ -50,8 +51,11 @@ class CompanionAgent:
                     "turn": self.turn_index,
                     "user_input": user_input,
                     "strategy": "crisis_interrupt",
+                    "reply": CRISIS_RESPONSE_TEMPLATE,
+                    "reply_length": len(CRISIS_RESPONSE_TEMPLATE),
                     "safety_reason": verdict.reason,
                     "blocked": True,
+                    **check_reply_quality(CRISIS_RESPONSE_TEMPLATE),
                 }
             )
             # 危机时清空对话历史，避免后续对话污染危机处理。
@@ -68,8 +72,11 @@ class CompanionAgent:
                     "turn": self.turn_index,
                     "user_input": user_input,
                     "strategy": "medical_referral",
+                    "reply": MEDICAL_REFUSAL_TEMPLATE,
+                    "reply_length": len(MEDICAL_REFUSAL_TEMPLATE),
                     "safety_reason": verdict.reason,
                     "blocked": True,
+                    **check_reply_quality(MEDICAL_REFUSAL_TEMPLATE),
                 }
             )
             self.turn_index += 1
@@ -90,6 +97,8 @@ class CompanionAgent:
         )
 
         self.history.append({"role": "assistant", "content": reply})
+        # trace 中直接带上质量判定，日志与评测共用同一份结论，
+        # 避免两处各自判定导致数据不一致
         self.trace.append(
             {
                 "turn": self.turn_index,
@@ -98,6 +107,7 @@ class CompanionAgent:
                 "reply": reply,
                 "reply_length": len(reply),
                 "blocked": False,
+                **check_reply_quality(reply),
             }
         )
         self.turn_index += 1
