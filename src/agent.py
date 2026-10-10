@@ -13,6 +13,7 @@ from .safety import (
     check_reply_quality,
     SafetyVerdict,
     CRISIS_RESPONSE_TEMPLATE,
+    CRISIS_RESPONSE_EUPHEMISTIC,
     MEDICAL_REFUSAL_TEMPLATE,
 )
 from .strategy import select_strategy
@@ -46,24 +47,38 @@ class CompanionAgent:
         verdict: SafetyVerdict = check_safety(user_input)
 
         if verdict.is_crisis:
+            # 按危机类型选择话术。直白表述（如「我想死」）用明确干预话术；
+            # 委婉表述（如「活着没意思」）用户意图尚不明确，若直接说
+            # 「你正在经历危机」会显得冒犯，因此用不追问、不淡化、给出口的版本。
+            if verdict.crisis_type == "self_harm_euphemistic":
+                reply = CRISIS_RESPONSE_EUPHEMISTIC
+                strategy_name = "crisis_interrupt_euphemistic"
+            elif verdict.crisis_type == "high_distress":
+                reply = CRISIS_RESPONSE_EUPHEMISTIC
+                strategy_name = "crisis_interrupt_distress"
+            else:
+                reply = CRISIS_RESPONSE_TEMPLATE
+                strategy_name = "crisis_interrupt"
+
             self.trace.append(
                 {
                     "turn": self.turn_index,
                     "user_input": user_input,
-                    "strategy": "crisis_interrupt",
-                    "reply": CRISIS_RESPONSE_TEMPLATE,
-                    "reply_length": len(CRISIS_RESPONSE_TEMPLATE),
+                    "strategy": strategy_name,
+                    "crisis_type": verdict.crisis_type,
+                    "reply": reply,
+                    "reply_length": len(reply),
                     "safety_reason": verdict.reason,
                     "blocked": True,
-                    **check_reply_quality(CRISIS_RESPONSE_TEMPLATE),
+                    **check_reply_quality(reply),
                 }
             )
             # 危机时清空对话历史，避免后续对话污染危机处理。
-            # 注意只清history 与 turn_index，不清 trace——
+            # 注意只清 history 与 turn_index，不清 trace——
             # trace 是评测依据，危机记录必须保留，否则会被误判为「未拦截」。
             self.history = []
             self.turn_index = 0
-            return CRISIS_RESPONSE_TEMPLATE
+            return reply
 
         if verdict.needs_referral:
             # 医疗边界：不阻断对话，但本轮不调用模型
