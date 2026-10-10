@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知语 · 心理陪伴</title>
+<style>
+  :root {
+    --bg: #F7F5F2;
+    --surface: #FFFFFF;
+    --text: #2C2C2A;
+    --text-secondary: #5F5E5A;
+    --text-tertiary: #888780;
+    --border: rgba(0,0,0,0.10);
+    --accent: #0F6E56;
+    --accent-soft: #E1F5EE;
+    --danger: #A32D2D;
+    --danger-soft: #FCEBEB;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.6;
+  }
+  header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+  }
+  .title { font-size: 15px; font-weight: 500; }
+  .subtitle { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+  .header-actions { display: flex; gap: 8px; }
+  button {
+    font-family: inherit;
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+  button:hover { background: var(--bg); }
+  button.primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  button.primary:hover { opacity: 0.9; }
+  main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .msg { max-width: 620px; display: flex; flex-direction: column; gap: 4px; }
+  .msg.user { align-self: flex-end; align-items: flex-end; }
+  .msg.bot { align-self: flex-start; }
+  .bubble {
+    padding: 12px 16px;
+    border-radius: 12px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .user .bubble { background: var(--accent); color: #fff; }
+  .bot .bubble {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top-left-radius: 4px;
+  }
+  .tag {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    padding: 0 4px;
+  }
+  /* 危机提示：视觉上需要足够醒目，不能弱化 */
+  .bot.crisis .bubble {
+    background: var(--danger-soft);
+    border-color: #F09595;
+    border-left: 3px solid var(--danger);
+  }
+  .bot.crisis .tag { color: var(--danger); }
+  footer {
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    padding: 16px 24px;
+  }
+  .input-row { display: flex; gap: 10px; max-width: 680px; margin: 0 auto; }
+  input[type=text] {
+    flex: 1;
+    font-family: inherit;
+    font-size: 14px;
+    padding: 11px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+  }
+  input[type=text]:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .hint {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-top: 10px;
+  }
+  .notice {
+    max-width: 620px;
+    margin: 0 auto 4px;
+    padding: 12px 16px;
+    background: var(--accent-soft);
+    border-radius: 8px;
+    font-size: 13px;
+    color: #085041;
+  }
+  /* 统计面板 */
+  #stats {
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    display: none;
+  }
+  #stats.show { display: block; }
+  #stats h3 { font-size: 13px; font-weight: 500; margin-bottom: 8px; }
+  #stats .row { display: flex; justify-content: space-between; padding: 3px 0; color: var(--text-secondary); }
+  #stats .issue { color: var(--danger); font-size: 12px; margin-top: 6px; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="title">知语 · 心理陪伴</div>
+    <div class="subtitle">日常情绪支持与倾听，非专业心理服务</div>
+  </div>
+  <div class="header-actions">
+    <button onclick="toggleStats()">统计</button>
+    <button onclick="resetSession()">重新开始</button>
+    <button class="primary" onclick="saveLog()">保存记录</button>
+  </div>
+</header>
+
+<main id="chat"></main>
+
+<footer>
+  <div id="stats"></div>
+  <div class="input-row">
+    <input type="text" id="msg" placeholder="想说点什么都可以，不用组织好语言" autocomplete="off">
+    <button class="primary" onclick="send()">发送</button>
+  </div>
+  <div class="hint">如果情况紧急，请拨打 12356 全国心理援助热线</div>
+</footer>
+
+<script>
+let sid = null;
+const chat = document.getElementById('chat');
+const input = document.getElementById('msg');
+
+function addMsg(role, text, strategy, blocked) {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg ' + role + (blocked ? ' crisis' : '');
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = text;
+  wrap.appendChild(bubble);
+
+  if (strategy) {
+    const tag = document.createElement('div');
+    tag.className = 'tag';
+    tag.textContent = blocked ? '安全边界已介入 · ' + strategy : '策略：' + strategy;
+    wrap.appendChild(tag);
+  }
+
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+async function init() {
+  try {
+    const res = await fetch('/api/session', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({note: ''})
+    });
+    const data = await res.json();
+    if (data.error) {
+      addMsg('bot', data.error);
+      return;
+    }
+    sid = data.sid;
+    addMsg('bot', '你好，我在的。\n\n想说什么都可以，不用急着组织好语言。如果现在只是觉得闷、觉得空，也可以就这么待着。');
+  } catch (e) {
+    addMsg('bot', '连接服务失败，请确认命令行窗口的服务仍在运行。');
+  }
+}
+
+async function send() {
+  const text = input.value.trim();
+  if (!text || !sid) return;
+  input.value = '';
+  addMsg('user', text);
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({sid, message: text})
+    });
+    const data = await res.json();
+    if (data.error) {
+      addMsg('bot', data.error);
+      return;
+    }
+    addMsg('bot', data.reply, data.strategy, data.blocked);
+  } catch (e) {
+    addMsg('bot', '请求失败，请稍后再试。');
+  }
+}
+
+async function resetSession() {
+  if (!sid) return;
+  await fetch('/api/reset', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({sid})
+  });
+  chat.innerHTML = '';
+  document.getElementById('stats').classList.remove('show');
+  addMsg('bot', '重新开始。想说什么都可以。');
+}
+
+async function toggleStats() {
+  if (!sid) return;
+  const res = await fetch('/api/stats?sid=' + sid);
+  const stats = await res.json();
+  const box = document.getElementById('stats');
+
+  if (stats.error) return;
+  if (Object.keys(stats).length === 0) {
+    box.innerHTML = '<h3>统计</h3><div class="row">还没有数据</div>';
+    box.classList.add('show');
+    return;
+  }
+
+  let html = '<h3>本次对话统计</h3>';
+  for (const [k, v] of Object.entries(stats)) {
+    if (k === '策略分布') {
+      html += '<div class="row"><span>策略分布</span></div>';
+      for (const [name, count] of Object.entries(v)) {
+        html += '<div class="row" style="padding-left:12px"><span>' + name + '</span><span>' + count + '</span></div>';
+      }
+    } else if (k === '策略执行偏差' && Array.isArray(v)) {
+      if (v.length > 0) {
+        html += '<div class="issue">' + v.join('<br>') + '</div>';
+      }
+    } else {
+      html += '<div class="row"><span>' + k + '</span><span>' + v + '</span></div>';
+    }
+  }
+  box.innerHTML = html;
+  box.classList.toggle('show');
+}
+
+async function saveLog() {
+  if (!sid) return;
+  const note = prompt('给这次对话加个备注（便于日后区分，例如「同学A试用」）：', '');
+  if (note === null) return;
+
+  const res = await fetch('/api/save', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({sid, note})
+  });
+  const data = await res.json();
+  if (data.error) {
+    alert(data.error);
+    return;
+  }
+  alert('已保存到：\n' + data.md);
+}
+
+input.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') send();
+});
+
+init();
+</script>
+</body>
+</html>
