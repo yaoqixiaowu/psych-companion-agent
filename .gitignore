@@ -19,6 +19,11 @@ Thumbs.db
 # 作业原始截图（不属于代码，不提交）
 Screenshot_*.jpg
 
+# 临时截图与界面素材
+界面/
+QQ*.png
+*.png
+
 # WorkBuddy 工作区数据
 .workbuddy/
 
