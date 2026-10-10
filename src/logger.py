@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import List
 
 from .config import BASE_DIR
+from .safety import check_strategy_consistency
 
 # 日志目录：logs/ 与 eval/outputs/ 分开，避免与评测报告混淆
 LOG_DIR = BASE_DIR / "logs"
@@ -77,10 +78,32 @@ class ConversationLogger:
             strategy_dist[name] = strategy_dist.get(name, 0) + 1
         stats["策略分布"] = strategy_dist
 
+        # 策略与实际回复的一致性
+        # 模型不总能严格遵守策略提示词，此处自动检测脱节情况
+        inconsistencies = []
+        for r in self.records:
+            if r.get("blocked"):
+                continue
+            issue = check_strategy_consistency(
+                r.get("strategy", ""), r.get("reply", "")
+            )
+            if issue:
+                inconsistencies.append(f"第{r.get('turn')}轮：{issue}")
+        stats["策略执行偏差"] = inconsistencies if inconsistencies else "无"
+
+        # 同策略最长连续轮次
+        seq = [r.get("strategy", "") for r in self.records if not r.get("blocked")]
+        if seq:
+            longest, current = 1, 1
+            for i in range(1, len(seq)):
+                current = current + 1 if seq[i] == seq[i - 1] else 1
+                longest = max(longest, current)
+            stats["同策略最长连续"] = longest
+
         return stats
 
     def format_stats(self) -> str:
-        """把统计渲染为多行文本，策略分布展开成明细而非字典 repr。"""
+        """把统计渲染为多行文本，策略分布与偏差列表展开显示。"""
         stats = self.get_stats()
         if not stats:
             return "（暂无数据）"
@@ -91,6 +114,10 @@ class ConversationLogger:
                 lines.append("策略分布:")
                 for name, count in value.items():
                     lines.append(f"    {name} × {count}")
+            elif key == "策略执行偏差" and isinstance(value, list):
+                lines.append("策略执行偏差:")
+                for item in value:
+                    lines.append(f"    {item}")
             else:
                 lines.append(f"{key}: {value}")
         return "\n".join(lines)
@@ -135,6 +162,10 @@ class ConversationLogger:
                     lines.append(f"- **{key}**：")
                     for name, count in value.items():
                         lines.append(f"  - {name} × {count}")
+                elif key == "策略执行偏差" and isinstance(value, list):
+                    lines.append(f"- **{key}**：")
+                    for item in value:
+                        lines.append(f"  - {item}")
                 else:
                     lines.append(f"- **{key}**：{value}")
             lines.append("")

@@ -72,6 +72,8 @@ class ScenarioReport:
     boundary_correct: bool = True
     # 策略选择是否符合场景预期
     strategy_correct: bool = True
+    # 实际出现的同策略最长连续轮次（用于轮换类场景校验）
+    max_consecutive_actual: int = 0
     # 实际使用的策略序列
     actual_strategies: List[str] = field(default_factory=list)
 
@@ -91,6 +93,8 @@ class ScenarioReport:
         print()
         print(f"  边界生效  : {'符合预期' if self.boundary_correct else '不符合预期'}")
         print(f"  策略选择  : {'符合预期' if self.strategy_correct else '不符合预期'}")
+        if self.max_consecutive_actual:
+            print(f"  同策略最长连续: {self.max_consecutive_actual} 轮")
 
 
 def summarize(reports: List[ScenarioReport]) -> dict:

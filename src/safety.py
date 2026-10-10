@@ -142,3 +142,24 @@ def check_reply_quality(reply: str) -> dict:
         "has_overreach": any(w in reply for w in OVERREACH_WORDS),
         "has_open_question": "？" in reply or "?" in reply,
     }
+
+
+def check_strategy_consistency(strategy_name: str, reply: str) -> str | None:
+    """
+    检查回复内容是否与所选策略一致。
+
+    模型不总能严格遵守策略提示词，因此需要一个自动检测机制。
+    这不是评判模型好坏，而是暴露「策略标签与实际行为脱节」的情况——
+    若某个策略长期与实际行为不符，说明该策略的提示词需要重写。
+
+    返回不一致的说明，正常时返回 None。
+    """
+    quality = check_reply_quality(reply)
+
+    if strategy_name == "支持与鼓励" and quality["has_open_question"]:
+        return "支持鼓励轮次不应提问，实际回复提出了问题"
+
+    if strategy_name == "反映与共情" and quality["has_open_question"]:
+        return "共情轮次通常不含提问，实际回复提出了问题"
+
+    return None

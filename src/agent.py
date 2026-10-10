@@ -82,8 +82,22 @@ class CompanionAgent:
             self.turn_index += 1
             return MEDICAL_REFUSAL_TEMPLATE
 
-        # 第二步：策略选择
-        strategy = select_strategy(user_input, self.turn_index)
+        # 第二步：策略选择。
+        # 必须传入完整的对话上下文，否则策略选择器无法感知：
+        #   - 此前是否已给过建议（决定何时转向认知重构）
+        #   - 此前用过哪些策略（避免连续重复导致盘问）
+        # 这两个参数缺一不可，否则会出现评测通过但实际对话失效的问题。
+        advice_count = sum(
+            1 for t in self.trace if t.get("strategy") == "reframe"
+        )
+        strategy_history = [t.get("strategy", "") for t in self.trace]
+
+        strategy = select_strategy(
+            user_input,
+            self.turn_index,
+            has_given_advice=advice_count > 0,
+            strategy_history=strategy_history,
+        )
 
         # 第三步：调用模型
         self.history.append({"role": "user", "content": user_input})

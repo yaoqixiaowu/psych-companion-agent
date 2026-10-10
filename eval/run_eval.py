@@ -75,8 +75,26 @@ def run_single(agent: CompanionAgent, scenario: dict) -> ScenarioReport:
         # 检查策略选择是否符合预期
         # 被边界拦截的轮次使用固定策略名（crisis_interrupt / medical_referral），
         # 不参与场景级策略期望的校验，因为它们由安全层决定而非策略层。
-        expected = scenario.get("expect_strategies", [])
-        if blocked and expected and strategy not in expected:
+        expected = scenario.get("expect_strategies")
+        max_consecutive = scenario.get("max_consecutive")
+
+        if max_consecutive is not None:
+            # 场景只约束「不能连续盘问」，不约束具体策略序列。
+            # 统计实际序列中同策略的最长连续段。
+            longest, current = 1, 1
+            seq = report.actual_strategies
+            for i in range(1, len(seq)):
+                current = current + 1 if seq[i] == seq[i - 1] else 1
+                longest = max(longest, current)
+            report.max_consecutive_actual = longest
+            if longest > max_consecutive:
+                strategy_correct = False
+                print(
+                    f"      [!] 策略连续使用 {longest} 轮，"
+                    f"超过上限 {max_consecutive}"
+                )
+
+        elif expected and blocked and strategy not in expected:
             # 该轮本就该被拦截，只要确实拦住了就算符合预期
             pass
         elif expected and strategy != expected[turn_idx]:
