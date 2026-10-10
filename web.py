@@ -13,6 +13,8 @@
     浏览器打开 http://127.0.0.1:5000
 """
 
+import os
+import socket
 from datetime import datetime
 
 from flask import Flask, jsonify, render_template, request
@@ -21,6 +23,34 @@ from src.agent import CompanionAgent
 from src.config import check_api_key
 from src.llm_client import LLMClient
 from src.logger import ConversationLogger
+
+
+def _get_lan_ips() -> dict:
+    """
+    获取本机所有局域网 IP。
+
+    做法：把本机当作客户端，向路由外的公共地址发起一次「不实际发送数据」的 UDP 连接，
+    操作系统会据此选出将要使用的网卡，再读取该网卡地址。
+    这种方式不依赖外部请求，也不需要解析 ipconfig 输出（Windows 下有编码问题）。
+
+    返回：{网卡名: [IP地址, ...]}
+    """
+    ips: dict = {}
+
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        # 不需要真正建立连接，connect 只是为了让系统选定出口网卡
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+
+        hostname = socket.gethostname()
+        ips[hostname] = [local_ip]
+    except Exception:
+        # 取不到时回退为空，不影响服务启动
+        pass
+
+    return ips
 
 app = Flask(__name__)
 
@@ -190,13 +220,40 @@ if __name__ == "__main__":
         print("=" * 60)
         raise SystemExit(1)
 
+    # 监听地址：
+    #   127.0.0.1 —— 仅本机可访问，默认值，最安全
+    #   0.0.0.0   —— 监听所有网卡，同一局域网内的朋友可访问
+    #
+    # 默认保持 127.0.0.1。需要分享给同学时，用环境变量显式开启：
+    #   Windows: set PSYCH_HOST=0.0.0.0 && python web.py
+    #   Linux/mac: PSYCH_HOST=0.0.0.0 python web.py
+    #
+    # 安全提醒：0.0.0.0 会让同网络内任何设备都能访问本服务，
+    # 而当前版本没有鉴权机制。因此仅建议在可信的校园网/家中使用，
+    # 不要暴露到公共网络。
+    host = os.environ.get("PSYCH_HOST", "127.0.0.1")
+    port = int(os.environ.get("PSYCH_PORT", "5000"))
+
     print("=" * 60)
     print("  知语 · 心理陪伴智能体")
     print()
-    print("  浏览器打开：http://127.0.0.1:5000")
+    print(f"  本机访问：http://127.0.0.1:{port}")
+
+    if host == "0.0.0.0":
+        # 列出本机所有局域网 IP，方便分发给同学
+        print()
+        print("  同一网络内可用以下地址访问：")
+        for name, ips in _get_lan_ips().items():
+            for ip in ips:
+                print(f"    http://{ip}:{port}    ({name})")
+        print()
+        print("  [安全提示] 当前无鉴权机制，仅限可信网络内使用。")
+    else:
+        print("  如需让同一局域网的同学访问，用环境变量 PSYCH_HOST=0.0.0.0 启动")
+
+    print()
     print("  按 Ctrl+C 停止服务")
     print("=" * 60)
 
     # debug=False：关闭调试模式，避免暴露详细堆栈信息
-    # 端口 5000，被占用时自动尝试 5001、5002
-    app.run(host="127.0.0.1", port=5000, debug=False)
+    app.run(host=host, port=port, debug=False)
