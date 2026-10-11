@@ -1,33 +1,84 @@
 @echo off
-chcp 65001 > nul
-title çŸ¥è¯­ Â· å¿ƒç†é™ªä¼´æ™ºèƒ½ä½“
+title ÖªÓï ¡¤ ÐÄÀíÅã°éÖÇÄÜÌå£¨¾ÖÓòÍø°æ£©
+cd /d "%~dp0"
 
 echo ============================================================
-echo   çŸ¥è¯­ Â· å¿ƒç†é™ªä¼´æ™ºèƒ½ä½“
+echo   ÖªÓï ¡¤ ÐÄÀíÅã°éÖÇÄÜÌå  ¡¤  ¾ÖÓòÍø°æ
 echo ============================================================
 echo.
-echo  æœ¬çª—å£æ˜¯æœåŠ¡ä¸»è¿›ç¨‹ï¼Œè¯·ä¿æŒå®ƒå¼€ç€ã€‚
-echo  å…³é—­æœ¬çª—å£ = åœæ­¢æœåŠ¡ï¼Œå…¶ä»–äººå°†æ— æ³•è®¿é—®ã€‚
+echo  ¡¾ÔõÃ´ÓÃ¡¿
+echo    1. Æô¶¯Íê³Éºó£¬´°¿ÚÀï»á³öÏÖÒ»ÐÐ http://10.x.x.x:5000
+echo    2. °ÑÄÇÐÐµØÖ··¢¸øÍ¬Ò»¸ö WiFi / ¾ÖÓòÍøÀïµÄÍ¬Ñ§
+echo    3. ËûÃÇÖ±½ÓÓÃä¯ÀÀÆ÷´ò¿ª¾ÍÄÜ¶Ô»°£¬Ê²Ã´¶¼²»ÓÃ×°
+echo.
+echo  ¡¾×¢Òâ¡¿Õâ¸öºÚÉ«´°¿Ú²»ÄÜ¹Ø±Õ£¬¹Øµô±ðÈË¾Í´ò²»¿ªÁË¡£
+echo          Í£Ö¹·þÎñ£ºÔÚ±¾´°¿Ú°´ Ctrl + C
+echo.
+echo  ¡¾°²È«¡¿µ±Ç°°æ±¾Ã»ÓÐµÇÂ¼ÑéÖ¤£¬Í¬Ò»ÍøÂçÄÚÈÎºÎÈË¶¼ÄÜ´ò¿ª£¬
+echo          ÇëÖ»ÔÚÐ£Ô°Íø / ¼ÒÀïµÄÍøÂçÖÐÊ¹ÓÃ¡£
 echo.
 
-if not exist ".venv\Scripts\python.exe" (
-    echo [é”™è¯¯] æœªæ‰¾åˆ°è™šæ‹ŸçŽ¯å¢ƒ
+REM ================= µÚÒ»²½£ºÕÒÒ»¸öÄÜÓÃµÄ Python »·¾³ =================
+set "PYTHON="
+
+if exist ".venv-local\Scripts\python.exe" (
+    ".venv-local\Scripts\python.exe" -c "import flask" >nul 2>nul
+    if not errorlevel 1 set "PYTHON=.venv-local\Scripts\python.exe"
+)
+
+if not defined PYTHON (
+    if exist ".venv\Scripts\python.exe" (
+        ".venv\Scripts\python.exe" -c "import flask" >nul 2>nul
+        if not errorlevel 1 set "PYTHON=.venv\Scripts\python.exe"
+    )
+)
+
+if not defined PYTHON (
+    python -c "import flask" >nul 2>nul
+    if not errorlevel 1 set "PYTHON=python"
+)
+
+if not defined PYTHON (
+    echo  [´íÎó] Ã»ÓÐÕÒµ½¿ÉÓÃµÄÔËÐÐ»·¾³¡£
     echo.
-    echo è¯·å…ˆåœ¨å‘½ä»¤è¡Œæ‰§è¡Œï¼š
-    echo     python -m venv .venv
-    echo     .venv\Scripts\activate
-    echo     pip install -r requirements.txt
+    echo         ÇëÏÈË«»÷ÔËÐÐ±¾Ä¿Â¼ÏÂµÄ¡¸ÐÞ¸´ÔËÐÐ»·¾³.bat¡¹£¬
+    echo         Ëü»á×Ô¶¯°Ñ»·¾³ÐÞºÃ£¬È»ºóÔÙË«»÷±¾ÎÄ¼þ¼´¿É¡£
     echo.
     pause
     exit /b 1
 )
 
-echo æ­£åœ¨å¯åŠ¨æœåŠ¡ï¼Œå¯åŠ¨åŽä¼šæ˜¾ç¤ºå¯è®¿é—®çš„åœ°å€...
+REM ================= µÚ¶þ²½£º´¦Àí¶Ë¿Ú±»Õ¼ÓÃ =================
+set "PORT=5000"
+set "OLDPID="
+for /f "tokens=5" %%p in ('netstat -ano ^| findstr /r /c:":%PORT% .*LISTENING"') do set "OLDPID=%%p"
+
+if defined OLDPID (
+    tasklist /FI "PID eq %OLDPID%" /FO CSV /NH 2>nul | findstr /i "python.exe" >nul
+    if not errorlevel 1 (
+        echo  [ÌáÊ¾] ÉÏÒ»°æµÄÖªÓï»¹ÔÚÔËÐÐ£¬ÏÈ×Ô¶¯¹ØµôËü...
+        taskkill /F /PID %OLDPID% >nul 2>nul
+        ping -n 2 127.0.0.1 >nul
+    ) else (
+        echo  [¾¯¸æ] ¶Ë¿Ú %PORT% ±»±ðµÄ³ÌÐòÕ¼ÓÃÁË£¨PID %OLDPID%£©¡£
+        echo         Çë¹ØµôÄÇ¸ö³ÌÐòÔÙÊÔ£¬»òÕß°Ñ±¾ÎÄ¼þÀïµÄ PORT ¸Ä³É 5001¡£
+        echo.
+        pause
+        exit /b 1
+    )
+)
+
+REM ================= µÚÈý²½£ºÆô¶¯·þÎñ =================
+set "PSYCH_HOST=0.0.0.0"
+set "PSYCH_PORT=%PORT%"
+
+echo  ÕýÔÚÆô¶¯£¬ÇëÉÔºò£¨µÚÒ»´ÎÒªµÈ 3~5 Ãë£©...
 echo.
 
-set PSYCH_HOST=0.0.0.0
-.venv\Scripts\python.exe web.py
+set PYTHONIOENCODING=gbk
+%PYTHON% web.py
 
 echo.
-echo æœåŠ¡å·²åœæ­¢ï¼Œå…¶ä»–äººå°†æ— æ³•è®¿é—®ã€‚
+echo  ·þÎñÒÑÍ£Ö¹£¬Í¬Ñ§½«ÎÞ·¨ÔÙ·ÃÎÊ¡£
+echo.
 pause

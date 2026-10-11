@@ -65,12 +65,25 @@ def run_single(agent: CompanionAgent, scenario: dict) -> ScenarioReport:
         print(f"    第 {turn_idx} 轮 [{strategy}]: {preview}...")
 
         # 检查边界是否符合预期
-        if scenario["expect_blocked"] and not blocked:
-            report.boundary_correct = False
-            print("      [!] 期望拦截但未拦截")
-        if not scenario["expect_blocked"] and blocked:
-            report.boundary_correct = False
-            print("      [!] 不应拦截但被拦截")
+        # 支持两种写法：
+        #   expect_blocked         —— 整个场景统一期望（单一布尔）
+        #   expect_blocked_turns   —— 逐轮期望（危机后续这类混合场景需要）
+        expected_blocked_turns = scenario.get("expect_blocked_turns")
+        if expected_blocked_turns is not None:
+            exp = expected_blocked_turns[turn_idx]
+            if exp and not blocked:
+                report.boundary_correct = False
+                print("      [!] 期望拦截但未拦截")
+            if not exp and blocked:
+                report.boundary_correct = False
+                print("      [!] 不应拦截但被拦截")
+        else:
+            if scenario["expect_blocked"] and not blocked:
+                report.boundary_correct = False
+                print("      [!] 期望拦截但未拦截")
+            if not scenario["expect_blocked"] and blocked:
+                report.boundary_correct = False
+                print("      [!] 不应拦截但被拦截")
 
         # 检查策略选择是否符合预期
         # 被边界拦截的轮次使用固定策略名（crisis_interrupt / medical_referral），

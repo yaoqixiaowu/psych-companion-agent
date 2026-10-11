@@ -1,38 +1,68 @@
 @echo off
-chcp 65001 > nul
-title çŸ¥è¯­ Â· å¿ƒç†é™ªä¼´æ™ºèƒ½ä½“
+title ÖªÓï ¡¤ ÐÄÀíÅã°éÖÇÄÜÌå£¨±¾»ú°æ£©
+cd /d "%~dp0"
 
 echo ============================================================
-echo   çŸ¥è¯­ Â· å¿ƒç†é™ªä¼´æ™ºèƒ½ä½“
+echo   ÖªÓï ¡¤ ÐÄÀíÅã°éÖÇÄÜÌå  ¡¤  ±¾»ú°æ
 echo ============================================================
 echo.
+echo  ±¾°æ±¾Ö»ÓÐÕâÌ¨µçÄÔÄÜ´ò¿ª£¬±ðÈË·ÃÎÊ²»ÁË¡£
+echo  ÒªÈÃÍ¬Ñ§Ò²ÄÜÓÃ£¬Çë¸ÄÓÃ¡¸Æô¶¯ÖªÓï-¾ÖÓòÍø.bat¡¹¡£
+echo.
 
-REM ä¼˜å…ˆä½¿ç”¨é¡¹ç›®å†…çš„è™šæ‹ŸçŽ¯å¢ƒï¼Œé¿å…è¦æ±‚ä½¿ç”¨è€…é…ç½® Python çŽ¯å¢ƒ
-if exist ".venv\Scripts\python.exe" (
-    set PYTHON=.venv\Scripts\python.exe
-) else (
-    echo [æç¤º] æœªæ‰¾åˆ°è™šæ‹ŸçŽ¯å¢ƒï¼Œå°è¯•ä½¿ç”¨ç³»ç»Ÿ Python
-    echo        å¦‚æœªå®‰è£…ä¾èµ–ï¼Œè¯·è¿è¡Œï¼špip install -r requirements.txt
-    echo.
-    set PYTHON=python
+REM ================= ÕÒÒ»¸öÄÜÓÃµÄ Python »·¾³ =================
+set "PYTHON="
+
+if exist ".venv-local\Scripts\python.exe" (
+    ".venv-local\Scripts\python.exe" -c "import flask" >nul 2>nul
+    if not errorlevel 1 set "PYTHON=.venv-local\Scripts\python.exe"
 )
 
-REM é»˜è®¤ä»…æœ¬æœºå¯è®¿é—®ã€‚è‹¥éœ€è®©åŒä¸€å±€åŸŸç½‘çš„åŒå­¦è®¿é—®ï¼Œ
-REM æ”¹ç”¨ å¯åŠ¨çŸ¥è¯­-å±€åŸŸç½‘.bat
-if "%PSYCH_HOST%"=="" (
-    echo æ¨¡å¼ï¼šæœ¬æœºè®¿é—®ï¼ˆä»…æ­¤ç”µè„‘å¯ç”¨ï¼‰
-    echo.
-    echo æ­£åœ¨å¯åŠ¨æœåŠ¡...
-    start "" http://127.0.0.1:5000
-    %PYTHON% web.py
-) else (
-    echo æ¨¡å¼ï¼šå±€åŸŸç½‘è®¿é—®ï¼ˆåŒä¸€ WiFi ä¸‹çš„è®¾å¤‡å¯ç”¨ï¼‰
-    echo.
-    echo æ­£åœ¨å¯åŠ¨æœåŠ¡ï¼Œå¯åŠ¨åŽå±å¹•ä¸Šä¼šæ˜¾ç¤ºå¯è®¿é—®çš„åœ°å€...
-    %PYTHON% web.py
-    echo.
-    echo æœåŠ¡å·²åœæ­¢ã€‚
+if not defined PYTHON (
+    if exist ".venv\Scripts\python.exe" (
+        ".venv\Scripts\python.exe" -c "import flask" >nul 2>nul
+        if not errorlevel 1 set "PYTHON=.venv\Scripts\python.exe"
+    )
 )
 
+if not defined PYTHON (
+    python -c "import flask" >nul 2>nul
+    if not errorlevel 1 set "PYTHON=python"
+)
+
+if not defined PYTHON (
+    echo  [´íÎó] Ã»ÓÐÕÒµ½¿ÉÓÃµÄÔËÐÐ»·¾³¡£
+    echo         ÇëÏÈË«»÷ÔËÐÐ¡¸ÐÞ¸´ÔËÐÐ»·¾³.bat¡¹¡£
+    echo.
+    pause
+    exit /b 1
+)
+
+REM ================= ´¦Àí¶Ë¿Ú±»Õ¼ÓÃ =================
+set "PORT=5000"
+set "OLDPID="
+for /f "tokens=5" %%p in ('netstat -ano ^| findstr /r /c:":%PORT% .*LISTENING"') do set "OLDPID=%%p"
+
+if defined OLDPID (
+    tasklist /FI "PID eq %OLDPID%" /FO CSV /NH 2>nul | findstr /i "python.exe" >nul
+    if not errorlevel 1 (
+        echo  [ÌáÊ¾] ÉÏÒ»°æµÄÖªÓï»¹ÔÚÔËÐÐ£¬ÏÈ×Ô¶¯¹ØµôËü...
+        taskkill /F /PID %OLDPID% >nul 2>nul
+        ping -n 2 127.0.0.1 >nul
+    )
+)
+
+REM ================= Æô¶¯·þÎñ =================
+set "PSYCH_PORT=%PORT%"
+
+echo  ÕýÔÚÆô¶¯£¬ÂíÉÏ»á×Ô¶¯´ò¿ªä¯ÀÀÆ÷...
+echo.
+
+start "" http://127.0.0.1:%PORT%
+set PYTHONIOENCODING=gbk
+%PYTHON% web.py
+
+echo.
+echo  ·þÎñÒÑÍ£Ö¹¡£
 echo.
 pause

@@ -4,300 +4,1352 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>知语 · 心理陪伴</title>
+<!-- 思源柔黑（思源黑体）：Google Fonts 上的 Noto Sans SC 即其官方发行版。
+     Regular 400 用于正文与按钮，Medium 500 用于顶部标题；
+     display=swap 保证字体未下载完成时先用本地黑体顶替，不白屏。 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #F7F5F2;
+    /* 配色以「安静、不刺激」为原则：低饱和青绿 + 暖白，
+       避免高对比度带来的紧绷感——使用场景多在情绪低落时。 */
+    --bg-1: #F2F7F4;
+    --bg-2: #EAF3EE;
     --surface: #FFFFFF;
-    --text: #2C2C2A;
-    --text-secondary: #5F5E5A;
-    --text-tertiary: #888780;
-    --border: rgba(0,0,0,0.10);
-    --accent: #0F6E56;
-    --accent-soft: #E1F5EE;
-    --danger: #A32D2D;
-    --danger-soft: #FCEBEB;
+    --surface-soft: #F7FBF9;
+    --text: #23302B;
+    --text-secondary: #58685F;
+    --text-tertiary: #8A9A92;
+    --border: rgba(35, 48, 43, 0.09);
+    --accent: #2E8B72;
+    --accent-deep: #1F6B57;
+    --accent-soft: #E3F2EC;
+    --accent-glow: rgba(46, 139, 114, 0.20);
+    --warm: #F6EFE6;
+    --danger: #A8412F;
+    --danger-soft: #FDF1EE;
+    --danger-border: #EBB9AD;
+    --shadow-sm: 0 1px 2px rgba(35, 48, 43, 0.05), 0 2px 8px rgba(35, 48, 43, 0.04);
+    --shadow-md: 0 6px 24px rgba(35, 48, 43, 0.09);
+    --radius-lg: 20px;
+    --radius-md: 14px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
   body {
-    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: var(--bg);
+    font-family: "Source Han Sans SC", "Noto Sans SC", "思源黑体", "思源柔黑", "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", sans-serif;
+    background:
+      radial-gradient(1100px 520px at 88% -12%, rgba(46,139,114,0.10), transparent 62%),
+      radial-gradient(900px 480px at -8% 108%, rgba(122,178,158,0.14), transparent 58%),
+      linear-gradient(160deg, var(--bg-1), var(--bg-2));
+    background-attachment: fixed;
     color: var(--text);
-    height: 100vh;
     display: flex;
     flex-direction: column;
-    line-height: 1.6;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
   }
+
+  /* ───────── 顶部栏 ───────── */
   header {
-    padding: 16px 24px;
+    padding: 14px clamp(14px, 4vw, 34px) 12px;
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(14px);
     border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--surface);
+    position: sticky; top: 0; z-index: 20;
   }
-  .title { font-size: 15px; font-weight: 500; }
-  .subtitle { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
-  .header-actions { display: flex; gap: 8px; }
+  .header-top {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    max-width: 900px; margin: 0 auto;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .avatar {
+    width: 42px; height: 42px; border-radius: 14px;
+    background: linear-gradient(140deg, #3E9E83, #23715C);
+    color: #fff; font-size: 17px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 14px var(--accent-glow);
+    animation: breathe 5.5s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { box-shadow: 0 4px 14px var(--accent-glow); }
+    50%      { box-shadow: 0 4px 22px rgba(46,139,114,0.34); }
+  }
+  .title { font-size: 15.5px; font-weight: 500; letter-spacing: 0.3px; }
+  .subtitle { font-size: 12px; color: var(--text-tertiary); margin-top: 1px; }
+  .header-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
   button {
-    font-family: inherit;
-    font-size: 13px;
-    padding: 6px 14px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text-secondary);
-    cursor: pointer;
+    font-family: inherit; font-size: 13px; padding: 7px 13px;
+    border-radius: 11px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text-secondary);
+    cursor: pointer; transition: all .18s ease;
+    display: inline-flex; align-items: center; gap: 6px;
+    white-space: nowrap;
   }
-  button:hover { background: var(--bg); }
+  button:hover { background: var(--accent-soft); border-color: rgba(46,139,114,.28); color: var(--accent-deep); }
+  button:active { transform: scale(0.975); }
   button.primary {
-    background: var(--accent);
-    color: #fff;
-    border-color: var(--accent);
+    background: linear-gradient(135deg, #33977C, #24705B); color: #fff; border: none;
+    box-shadow: 0 3px 12px var(--accent-glow);
   }
-  button.primary:hover { opacity: 0.9; }
+  button.primary:hover { filter: brightness(1.05); color: #fff; }
+  button.primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+  button svg { width: 15px; height: 15px; flex-shrink: 0; }
+  button.on { background: var(--accent-soft); border-color: rgba(46,139,114,.35); color: var(--accent-deep); }
+
+  /* ───────── 语音控制条（置于顶部，随时可切换语音包） ───────── */
+  #voiceBar {
+    max-width: 900px; margin: 10px auto 0;
+    display: none; flex-wrap: wrap; align-items: center; gap: 8px;
+    padding: 9px 12px;
+    background: var(--surface-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    animation: rise .25s ease both;
+  }
+  #voiceBar.show { display: flex; }
+  .vb-label { font-size: 12px; color: var(--text-tertiary); }
+  select {
+    font-family: inherit; font-size: 12.5px;
+    padding: 6px 10px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text-secondary); cursor: pointer;
+    max-width: 240px;
+  }
+  select:focus { outline: none; border-color: var(--accent); }
+  .vb-spacer { flex: 1; }
+
+  /* ───────── 对话区 ───────── */
   main {
-    flex: 1;
-    overflow-y: auto;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    flex: 1; overflow-y: auto; scroll-behavior: smooth;
+    padding: 24px clamp(14px, 4vw, 34px) 10px;
+    display: flex; flex-direction: column; gap: 16px;
   }
-  .msg { max-width: 620px; display: flex; flex-direction: column; gap: 4px; }
-  .msg.user { align-self: flex-end; align-items: flex-end; }
-  .msg.bot { align-self: flex-start; }
+  main > * { max-width: 900px; width: 100%; margin: 0 auto; }
+  .msg { display: flex; flex-direction: column; gap: 5px; animation: rise .32s ease both; }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(9px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .msg.user { align-items: flex-end; }
+  .msg.bot  { align-items: flex-start; }
+  .row { display: flex; align-items: flex-end; gap: 9px; max-width: 78%; }
+  .user .row { flex-direction: row-reverse; }
+  .mini-avatar {
+    width: 28px; height: 28px; border-radius: 9px; flex-shrink: 0;
+    background: linear-gradient(140deg, #3E9E83, #23715C);
+    color: #fff; font-size: 12px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 2px;
+  }
   .bubble {
-    padding: 12px 16px;
-    border-radius: 12px;
-    white-space: pre-wrap;
-    word-break: break-word;
+    padding: 13px 17px;
+    border-radius: var(--radius-lg);
+    white-space: pre-wrap; word-break: break-word;
+    font-size: 14.5px;
   }
-  .user .bubble { background: var(--accent); color: #fff; }
+  .user .bubble {
+    background: linear-gradient(135deg, #33977C, #24705B);
+    color: #fff;
+    border-bottom-right-radius: 6px;
+    box-shadow: 0 3px 14px var(--accent-glow);
+  }
   .bot .bubble {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-top-left-radius: 4px;
+    border-top-left-radius: 6px;
+    box-shadow: var(--shadow-sm);
   }
   .tag {
-    font-size: 11px;
-    color: var(--text-tertiary);
-    padding: 0 4px;
+    font-size: 11px; color: var(--text-tertiary);
+    padding: 0 6px; display: flex; align-items: center; gap: 5px;
   }
-  /* 危机提示：视觉上需要足够醒目，不能弱化 */
+  .user .tag { justify-content: flex-end; }
+  .tag .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); opacity: .55; }
+
+  /* 语音状态提示（挂在机器人消息下方）。
+     存在的意义：在线语音首字节约需 1.7 秒才到，静默等待会被当成「点了没反应」。 */
+  .speak-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; color: var(--accent);
+    padding: 0 7px; height: 20px; border-radius: 10px;
+    background: var(--accent-soft, rgba(90,140,130,.1));
+    animation: rise .25s ease both;
+  }
+  .speak-chip .eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 10px; }
+  .speak-chip .eq i {
+    display: block; width: 2px; height: 4px; border-radius: 1px;
+    background: currentColor; opacity: .65;
+    animation: eqPulse 1s ease-in-out infinite;
+  }
+  .speak-chip .eq i:nth-child(2) { animation-delay: .16s; }
+  .speak-chip .eq i:nth-child(3) { animation-delay: .32s; }
+  /* 还没出声时（准备中）用更慢的呼吸，听起来"在等"而不是"在响" */
+  .speak-chip:not(.playing) .eq i { animation-duration: 1.6s; opacity: .45; }
+  @keyframes eqPulse {
+    0%, 100% { height: 3px; }
+    50%      { height: 10px; }
+  }
+
+  #previewBtn.loading {
+    opacity: .55; pointer-events: none;
+  }
+
+  /* 安全提示：保持醒目是刻意的设计，不做视觉弱化 */
   .bot.crisis .bubble {
     background: var(--danger-soft);
-    border-color: #F09595;
+    border: 1px solid var(--danger-border);
     border-left: 3px solid var(--danger);
   }
   .bot.crisis .tag { color: var(--danger); }
+  .bot.crisis .tag .dot { background: var(--danger); opacity: 1; }
+  .bot.crisis .mini-avatar { background: linear-gradient(140deg, #C0523C, #A8412F); }
+
+  /* ── 语气分级：语气不只体现在声音里，也应在视觉上可感知 ──
+     危机语气（警觉/坚定）加强存在感，让「他认真起来了」看得见；
+     温柔/轻快语气降低对比度，不制造额外的视觉压力。 */
+  .bot.emo-alarm .bubble,
+  .bot.emo-firm .bubble {
+    border-left: 3px solid #C0523C;
+    background: linear-gradient(180deg, #FDF6F4, #FBF9F7);
+  }
+  .bot.emo-alarm .mini-avatar,
+  .bot.emo-firm .mini-avatar {
+    background: linear-gradient(140deg, #C0523C, #A8412F);
+  }
+  .bot.emo-gentle .bubble {
+    border-left: 3px solid #A8C5B8;
+    background: linear-gradient(180deg, #FAFCFB, #FFFFFF);
+  }
+  /* 危机后续的「认真陪伴」：分量介于日常与危机之间 */
+  .bot.emo-watch .bubble {
+    border-left: 3px solid #C98C6B;
+    background: linear-gradient(180deg, #FDFAF7, #FFFFFF);
+  }
+  .bot.emo-bright .bubble {
+    border-left: 3px solid #7FB89F;
+    background: linear-gradient(180deg, #F6FBF8, #FFFFFF);
+  }
+
+  .typing { display: inline-flex; gap: 5px; padding: 5px 2px; }
+  .typing span {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--text-tertiary);
+    animation: blink 1.25s infinite ease-in-out;
+  }
+  .typing span:nth-child(2) { animation-delay: .18s; }
+  .typing span:nth-child(3) { animation-delay: .36s; }
+  @keyframes blink {
+    0%, 70%, 100% { opacity: .25; transform: translateY(0); }
+    35% { opacity: 1; transform: translateY(-3px); }
+  }
+
+  /* 快捷开场：呼应用户「说不清感受」的场景 */
+  .chips { display: flex; flex-wrap: wrap; gap: 9px; animation: rise .45s .12s ease both; }
+  .chip {
+    font-family: inherit; font-weight: 400;   /* 思源柔黑 Regular */
+    font-size: 13px; padding: 9px 16px; border-radius: 999px;
+    border: 1px solid rgba(46,139,114,.26); background: rgba(255,255,255,.9);
+    color: var(--accent-deep); cursor: pointer; transition: all .18s ease;
+    box-shadow: 0 1px 3px rgba(35,48,43,.04);
+  }
+  .chip:hover { background: var(--accent-soft); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+
+  /* 危机后续提示条：让用户看到「系统记得刚才发生的事」 */
+  #crisisBar {
+    display: none; align-items: center; gap: 9px;
+    padding: 10px 15px; border-radius: var(--radius-md);
+    background: var(--danger-soft); border: 1px solid var(--danger-border);
+    color: var(--danger); font-size: 12.5px;
+    animation: rise .3s ease both;
+  }
+  #crisisBar.show { display: flex; }
+  #crisisBar svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+  .notice {
+    padding: 11px 16px; border-radius: var(--radius-md);
+    background: var(--accent-soft); font-size: 12.5px;
+    color: #17543F; text-align: center;
+    animation: rise .35s ease both;
+  }
+
+  /* 连接失败卡片：给明确出路，不停在死胡同 */
+  .error-card {
+    padding: 18px 20px; border-radius: var(--radius-lg);
+    background: var(--surface); border: 1px solid var(--border);
+    box-shadow: var(--shadow-md); font-size: 13.5px;
+    animation: rise .35s ease both;
+  }
+  .error-card h4 { font-size: 14px; margin-bottom: 8px; }
+  .error-card p { color: var(--text-secondary); margin-bottom: 8px; }
+  .error-card code {
+    display: block; background: var(--surface-soft); border: 1px solid var(--border);
+    padding: 9px 12px; border-radius: 10px; margin: 8px 0;
+    font-size: 12.5px; color: var(--accent-deep);
+    font-family: ui-monospace, Consolas, monospace;
+  }
+  .error-card button { margin-top: 4px; }
+
+  /* ───────── 统计面板 ───────── */
+  #stats {
+    padding: 15px 19px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: var(--radius-lg);
+    font-size: 13px; box-shadow: var(--shadow-sm); display: none;
+  }
+  #stats.show { display: block; animation: rise .25s ease both; }
+  #stats h3 { font-size: 13px; font-weight: 600; margin-bottom: 9px; }
+  #stats .srow { display: flex; justify-content: space-between; padding: 3px 0; color: var(--text-secondary); }
+  #stats .issue { color: var(--danger); font-size: 12px; margin-top: 6px; }
+
+  /* ───────── 底部输入区 ───────── */
   footer {
     border-top: 1px solid var(--border);
-    background: var(--surface);
-    padding: 16px 24px;
+    background: rgba(255,255,255,0.86);
+    backdrop-filter: blur(14px);
+    padding: 13px clamp(14px, 4vw, 34px) 11px;
   }
-  .input-row { display: flex; gap: 10px; max-width: 680px; margin: 0 auto; }
+  .footer-inner { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+  .input-row { display: flex; gap: 10px; align-items: center; }
+  .input-wrap {
+    flex: 1; display: flex; align-items: center;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 4px 5px 4px 8px;
+    transition: border-color .18s ease, box-shadow .18s ease;
+    box-shadow: var(--shadow-sm);
+  }
+  .input-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); }
   input[type=text] {
-    flex: 1;
-    font-family: inherit;
-    font-size: 14px;
-    padding: 11px 14px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--surface);
-    color: var(--text);
+    flex: 1; font-family: inherit; font-size: 14px; padding: 9px 8px;
+    border: none; outline: none; background: transparent; color: var(--text);
   }
-  input[type=text]:focus {
-    outline: none;
-    border-color: var(--accent);
+  #micBtn { border: none; background: transparent; color: var(--text-tertiary); padding: 8px; border-radius: 11px; }
+  #micBtn:hover { background: var(--accent-soft); color: var(--accent-deep); }
+  #micBtn.listening { color: #fff; background: var(--danger); animation: pulse 1.3s infinite; }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(168,65,47,.32); }
+    50%      { box-shadow: 0 0 0 8px rgba(168,65,47,0); }
   }
-  .hint {
-    text-align: center;
-    font-size: 12px;
-    color: var(--text-tertiary);
-    margin-top: 10px;
+  .hint { text-align: center; font-size: 12px; color: var(--text-tertiary); }
+
+  #toast {
+    position: fixed; left: 50%; bottom: 100px;
+    transform: translateX(-50%) translateY(16px);
+    background: rgba(35, 48, 43, .93); color: #fff;
+    font-size: 13px; padding: 10px 20px; border-radius: 999px;
+    opacity: 0; pointer-events: none; transition: all .25s ease;
+    z-index: 60; max-width: 82vw; text-align: center;
   }
-  .notice {
-    max-width: 620px;
-    margin: 0 auto 4px;
-    padding: 12px 16px;
-    background: var(--accent-soft);
-    border-radius: 8px;
-    font-size: 13px;
-    color: #085041;
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 620px) {
+    .subtitle { display: none; }
+    .row { max-width: 94%; }
+    .header-actions button span.txt { display: none; }
+    .header-actions button { padding: 8px 10px; }
+    select { max-width: 150px; }
   }
-  /* 统计面板 */
-  #stats {
-    max-width: 620px;
-    margin: 0 auto;
-    padding: 12px 16px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-size: 13px;
-    display: none;
-  }
-  #stats.show { display: block; }
-  #stats h3 { font-size: 13px; font-weight: 500; margin-bottom: 8px; }
-  #stats .row { display: flex; justify-content: space-between; padding: 3px 0; color: var(--text-secondary); }
-  #stats .issue { color: var(--danger); font-size: 12px; margin-top: 6px; }
 </style>
 </head>
 <body>
 <header>
-  <div>
-    <div class="title">知语 · 心理陪伴</div>
-    <div class="subtitle">日常情绪支持与倾听，非专业心理服务</div>
+  <div class="header-top">
+    <div class="brand">
+      <div class="avatar">知</div>
+      <div>
+        <div class="title">知语 · 心理陪伴</div>
+        <div class="subtitle">日常情绪支持与倾听，非专业心理服务</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="voiceBtn" onclick="toggleVoice()" title="语音朗读开关">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+        <span class="txt" id="voiceLabel">朗读开</span>
+      </button>
+      <button onclick="toggleStats()" title="本次对话统计">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+        <span class="txt">统计</span>
+      </button>
+      <button onclick="resetSession()" title="换一段新的对话">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        <span class="txt">重新开始</span>
+      </button>
+      <button class="primary" onclick="saveLog()" title="保存本次对话记录">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+        <span class="txt">保存记录</span>
+      </button>
+    </div>
   </div>
-  <div class="header-actions">
-    <button onclick="toggleStats()">统计</button>
-    <button onclick="resetSession()">重新开始</button>
-    <button class="primary" onclick="saveLog()">保存记录</button>
+
+  <!-- 语音设置：置于顶部。默认使用服务端在线语音，用户无需安装任何语音包 -->
+  <div id="voiceBar">
+    <span class="vb-label">发音引擎</span>
+    <select id="engineSelect" onchange="onEngineChange()">
+      <option value="fast">极速语音（最快 · 音色固定）</option>
+      <option value="online">在线语音（默认 · 音色可选）</option>
+      <option value="local">本机语音</option>
+    </select>
+    <span class="vb-label">音色</span>
+    <select id="voiceSelect" onchange="onVoiceChange()"></select>
+    <button id="previewBtn" onclick="previewVoice()" title="试听当前音色">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+      试听
+    </button>
+    <span class="vb-spacer"></span>
+    <span class="vb-label">语速</span>
+    <select id="rateSelect" onchange="onRateChange()">
+      <option value="0.95">慢</option>
+      <option value="1.15">正常</option>
+      <option value="1.5">快</option>
+    </select>
+    <span class="vb-label" id="voiceCount"></span>
   </div>
 </header>
 
 <main id="chat"></main>
 
 <footer>
-  <div id="stats"></div>
-  <div class="input-row">
-    <input type="text" id="msg" placeholder="想说点什么都可以，不用组织好语言" autocomplete="off">
-    <button class="primary" onclick="send()">发送</button>
+  <div class="footer-inner">
+    <div id="stats"></div>
+    <div id="crisisBar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      <span>知语还记得你刚才说的事，我们会先确认你现在是安全的再继续聊。</span>
+    </div>
+    <div class="input-row">
+      <div class="input-wrap">
+        <input type="text" id="msg" placeholder="想说点什么都可以，不用组织好语言" autocomplete="off">
+        <button id="micBtn" onclick="toggleMic()" title="语音输入" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 17v4"/></svg>
+        </button>
+      </div>
+      <button class="primary" id="sendBtn" onclick="send()">发送</button>
+    </div>
+    <div class="hint">如果情况紧急，请拨打 12356 全国心理援助热线</div>
   </div>
-  <div class="hint">如果情况紧急，请拨打 12356 全国心理援助热线</div>
 </footer>
 
+<div id="toast"></div>
+
 <script>
+/* ══════════════════════════════════════════════════════════
+   知语 · 前端
+   职责：对话交互、语音朗读与语音输入、状态提示、会话自愈
+   ══════════════════════════════════════════════════════════ */
+
 let sid = null;
+let busy = false;
 const chat = document.getElementById('chat');
 const input = document.getElementById('msg');
+const sendBtn = document.getElementById('sendBtn');
 
-function addMsg(role, text, strategy, blocked) {
+function toast(text, duration) {
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), duration || 2400);
+}
+
+/* ══════════ 语音朗读（TTS，两套引擎） ══════════
+   默认使用【在线语音】：由服务端调用微软语音服务合成 MP3 返回，
+   音色不依赖用户操作系统是否装过语音包——这是本次改造的关键，
+   用户端任何浏览器打开都有声音，无需下载任何东西。
+
+   【本机语音】为备选：走浏览器 Web Speech API，离线可用，
+   但要求系统已安装中文语音包（部分精简版系统没有）。
+
+   在线合成失败（常见原因：断网）时自动降级到本机语音，
+   两套都不可用才提示。引擎与音色选择均存入 localStorage。 */
+const synth = window.speechSynthesis;
+let voiceOn = true;
+let availableVoices = [];      // 本机语音包（Web Speech API 提供）
+let currentVoice = null;       // 本机语音包对象
+let onlineVoices = [];         // 服务端在线音色
+let onlineVoiceId = localStorage.getItem('zhiyu_online_voice') || 'zh-CN-XiaoxiaoNeural';
+let engine = localStorage.getItem('zhiyu_engine_v2') || '';   // fast | online | local（空 = 待探测后自动选择）
+// 键名带 _v2：旧版本会把「自动选择的结果」也写进 localStorage，
+// 沿用旧键会让新的默认引擎永远不生效
+let fastAvailable = false;     // 「极速引擎」是否可用，由服务端实测后返回
+
+let currentEmotionKey = 'warm';   // 本轮语气，由服务端按用户情绪判定后回传
+let currentEmotion = { key: 'warm', label: '温和自然', rate: -2, pitch: 0, volume: 2 };
+
+const LS_VOICE = 'zhiyu_voice';
+
+/* 语速：**在播放端施加**（playbackRate，保留音调），而不是让服务端重新合成。
+   这样做有两个好处：
+   1. 改语速立即生效，不用等一次合成（合成一次要 2 秒左右）；
+   2. 语速不进入服务端缓存键，同一句话不会因为语速不同而被重复合成。
+
+   默认值经历 1.0 → 1.25 → 1.15：1.25 实测偏快（声音抢在阅读前面，
+   用户还没读完就已经念完），回调到 1.15 略慢于上一版、更接近自然交谈。
+   历史默认值（1.0 / 1.25）都视为「未手动调整过」，自动跟随新默认迁移。 */
+const DEFAULT_RATE = 1.15;
+let speechRate = (function () {
+  const stored = parseFloat(localStorage.getItem('zhiyu_rate') || '');
+  if (!stored || Number.isNaN(stored)) return DEFAULT_RATE;
+  // 旧默认值迁移：这些值代表用户从未手动调过语速
+  const legacyDefaults = [1, 1.25];
+  if (legacyDefaults.some(function (v) { return Math.abs(stored - v) < 0.01; })) return DEFAULT_RATE;
+  return stored;
+})();
+
+/* 本机语音包读取。浏览器（尤其 Chrome）是异步加载列表的，
+   因此下面除 onvoiceschanged 事件外还有一层轮询兜底。 */
+function loadVoices() {
+  if (!synth) return false;
+  const all = synth.getVoices();
+  if (!all.length) return false;
+
+  // 中文语音包优先（含大陆、港台及粤语），其余作为备选
+  const zh = all.filter(v => /^(zh|cmn|yue)/i.test(v.lang));
+  availableVoices = zh.length ? zh : all;
+
+  if (engine === 'local') renderVoiceOptions();
+  return true;
+}
+
+let voiceProbeCount = 0;
+function probeVoices() {
+  if (availableVoices.length || voiceProbeCount >= 8) return;
+  voiceProbeCount += 1;
+  loadVoices();
+  setTimeout(probeVoices, 500);
+}
+
+function pickDefaultVoiceIndex() {
+  // 优先本地语音（响应更快、无网络依赖）
+  const local = availableVoices.findIndex(v => v.localService);
+  return local >= 0 ? local : 0;
+}
+
+/* 按当前引擎渲染音色下拉框。
+   在线音色由服务端提供，与操作系统无关，因此这里永远有内容可选；
+   本机音色为空时自动切回在线，而不是丢一个空白框给用户。 */
+function renderVoiceOptions() {
+  const sel = document.getElementById('voiceSelect');
+  const count = document.getElementById('voiceCount');
+  const engSel = document.getElementById('engineSelect');
+  if (!sel || !count) return;
+
+  engSel.value = engine;
+  sel.disabled = false;
+  sel.innerHTML = '';
+  count.style.color = '';
+
+  if (engine === 'fast' && fastAvailable) {
+    const opt = document.createElement('option');
+    opt.textContent = '（极速引擎 · 固定音色）';
+    sel.appendChild(opt);
+    sel.disabled = true;
+    count.textContent = '极速合成 · 首音约 1 秒 · 音色较平实';
+    localStorage.setItem('zhiyu_engine_v2', engine);
+    return;
+  }
+  // 极速引擎不可用（网络屏蔽等）→ 自动退回在线语音，而不是留一个没声音的选项
+  if (engine === 'fast') {
+    engine = 'online';
+    toast('极速语音当前不可用，已切换到在线语音', 3600);
+  }
+
+  if (engine === 'online') {
+    if (!onlineVoices.length) {
+      // 服务端没装合成组件（极少见）→ 只能用本机
+      engine = 'local';
+      if (availableVoices.length) {
+        toast('在线语音不可用，已切换到本机语音', 3000);
+        renderVoiceOptions();
+        return;
+      }
+      showNoVoiceHint('在线语音不可用，且本机未安装语音包。请检查网络后刷新页面');
+      return;
+    }
+    onlineVoices.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.id;
+      opt.textContent = `${v.name}（${v.lang}·${v.gender}·${v.desc}）`;
+      sel.appendChild(opt);
+    });
+    if (!onlineVoices.some(v => v.id === onlineVoiceId)) onlineVoiceId = onlineVoices[0].id;
+    sel.value = onlineVoiceId;
+    count.textContent = `在线合成 · ${onlineVoices.length} 个音色 · 无需安装`;
+    localStorage.setItem('zhiyu_engine_v2', engine);
+    return;
+  }
+
+  // ── 本机语音 ──
+  if (!availableVoices.length) {
+    if (onlineVoices.length) {
+      toast('本机未安装中文语音包，已自动切回在线语音', 3600);
+      engine = 'online';
+      renderVoiceOptions();
+      return;
+    }
+    showNoVoiceHint('本机没有可用的语音包，且在线语音不可用。请检查网络后刷新');
+    return;
+  }
+
+  availableVoices.forEach((v, i) => {
+    const opt = document.createElement('option');
+    opt.value = String(i);
+    const tag = v.localService ? '本机' : '在线';
+    opt.textContent = `${v.name}（${v.lang}·${tag}）`;
+    sel.appendChild(opt);
+  });
+
+  // 恢复上次选择；找不到就用默认推荐
+  let idx = availableVoices.findIndex(v => v.name === localStorage.getItem(LS_VOICE));
+  if (idx < 0) idx = pickDefaultVoiceIndex();
+  sel.value = String(idx);
+  currentVoice = availableVoices[idx];
+  count.textContent = `本机语音 · ${availableVoices.length} 个语音包`;
+  localStorage.setItem('zhiyu_engine_v2', engine);
+}
+
+function showNoVoiceHint(msg) {
+  const sel = document.getElementById('voiceSelect');
+  if (sel) { sel.innerHTML = `<option>暂无可用语音</option>`; sel.disabled = true; }
+  const count = document.getElementById('voiceCount');
+  if (count) { count.textContent = msg; count.style.color = '#b3591f'; }
+}
+
+/* 启动时初始化两套引擎 */
+async function initVoiceEngine() {
+  // 1) 本机语音包
+  if (synth) {
+    loadVoices();
+    synth.onvoiceschanged = loadVoices;
+    setTimeout(probeVoices, 400);
+  }
+
+  // 2) 在线音色（服务端接口，不依赖用户系统）
+  try {
+    const resp = await fetch('/api/voices');
+    const data = await resp.json();
+    if (data && data.available && Array.isArray(data.online) && data.online.length) {
+      onlineVoices = data.online;
+    }
+    // 极速引擎的可用性由服务端实测（该接口可能被网络屏蔽），
+    // 因此是否默认使用它，要等探测结果回来才能决定。
+    fastAvailable = !!(data && data.fast);
+  } catch (e) {
+    // 取不到就落回本机语音，下面 renderVoiceOptions 会处理
+  }
+
+  // 首次打开：默认使用**在线语音**——它是唯一「音色可选」的引擎，
+  // 自然度明显优于极速引擎（后者是固定音色、听感较平实）。
+  // 在线不可用才退回本机语音；更在意响应速度的用户可在顶部切到极速引擎。
+  if (!engine) engine = onlineVoices.length ? 'online' : 'local';
+
+  renderVoiceOptions();
+  snapRateSelect();
+  document.getElementById('voiceBar').classList.toggle('show', voiceOn);
+  if (!onlineVoices.length && !availableVoices.length) {
+    toast('未检测到可用语音，请确认服务与网络正常', 4000);
+  }
+}
+
+initVoiceEngine();
+
+function onVoiceChange() {
+  const val = document.getElementById('voiceSelect').value;
+  if (engine === 'online') {
+    onlineVoiceId = val;
+    localStorage.setItem('zhiyu_online_voice', val);
+  } else {
+    currentVoice = availableVoices[parseInt(val, 10)] || null;
+    if (currentVoice) localStorage.setItem(LS_VOICE, currentVoice.name);
+  }
+  previewVoice();
+}
+
+function onEngineChange() {
+  engine = document.getElementById('engineSelect').value;
+  localStorage.setItem('zhiyu_engine_v2', engine);
+  stopSpeaking();
+  renderVoiceOptions();
+  previewVoice();
+}
+
+function onRateChange() {
+  speechRate = parseFloat(document.getElementById('rateSelect').value) || DEFAULT_RATE;
+  localStorage.setItem('zhiyu_rate', String(speechRate));
+  // 语速在播放端生效：正在播的音频立即跟着变速，不需要重新合成
+  (currentAudios || []).forEach(function (a) { a.playbackRate = playRate(); });
+  previewVoice();
+}
+
+/* 把当前语速对齐到下拉框里最接近的一项。
+   旧版本存的值（0.85 / 1 / 1.15）已不在选项里，不对齐会让下拉显示空白。 */
+function snapRateSelect() {
+  const sel = document.getElementById('rateSelect');
+  if (!sel) return;
+  const opts = Array.from(sel.options).map(function (o) { return parseFloat(o.value); });
+  let best = opts[0], diff = Infinity;
+  opts.forEach(function (v) {
+    const d = Math.abs(v - speechRate);
+    if (d < diff) { diff = d; best = v; }
+  });
+  if (diff > 0.001) speechRate = best;   // 实际语速要与下拉显示保持一致
+  sel.value = String(best);
+}
+
+/* 各引擎的「同等听感」语速系数。
+   实测同一句话：极速引擎音频 6.9~7.9 秒、在线合成 5.1~5.5 秒，
+   平均比值 1.41——极速引擎本身念得更慢（它输出 64kbps 音频，比在线合成的 48kbps 更"稠"）。
+   不做补偿就会变成「出声更快、但念完更慢」，把省下的延迟又还回去。
+   系数取自实测平均值，保证切换引擎时听到的语速基本一致。 */
+const ENGINE_RATE = { fast: 1.4, online: 1, local: 1 };
+
+/* 极速引擎是第三方朗读接口，不支持服务端的音调/音量调制，
+   情绪只能作用在语速上；在线合成的情绪已由服务端施加，这里不能重复叠加。 */
+const ENGINE_EMO_RATE = { fast: true, online: false, local: false };
+
+function playRate() {
+  let r = speechRate * (ENGINE_RATE[engine] || 1);
+  if (ENGINE_EMO_RATE[engine] && currentEmotion && currentEmotion.rate) {
+    r *= 1 + currentEmotion.rate / 100;
+  }
+  return Math.max(0.5, Math.min(2.5, r));
+}
+
+/* force=true 用于「试听」：即便朗读开关是关的，试听也应发声 */
+function speak(text, force, wrapEl) {
+  if (!voiceOn && !force) return;
+  if (!text) return;
+  stopSpeaking();
+
+  if (engine === 'local') {
+    localSpeak(text);
+    return;
+  }
+
+  speakOnline(text, wrapEl);
+}
+
+/* 把回复拆成合成片段。
+   旧版逐句拆分的问题：每一句都是一次独立合成，都会「新起一个调型」，
+   句子之间又有音频元素切换的缝隙——听起来一顿一顿、像机器念字，
+   这正是「语音不流畅、没有活人感」的主要来源。
+   现在改为两段式：第一段只取第一句（保证尽快出声），剩余全部合并成
+   一整段交给云端连续合成，句间停顿完全交给标点，节奏与真人说话一致。
+   第二段虽然更长，但服务端是边合成边下发的流式音频，
+   第一句播完时它早已就绪，不会多等。
+
+   maxLen 用于「极速引擎」：该引擎对单次文本有硬上限（180 字），
+   超长会被直接截断——话念到一半突然没了。此时必须按长度切块。 */
+function splitChunks(text, maxLen) {
+  const marks = '。！？!?；;';
+  const raw = [];
+  let buf = '';
+  for (const ch of text) {
+    if (ch === '\n') {
+      if (buf.trim()) { raw.push(buf.trim()); buf = ''; }
+      continue;
+    }
+    buf += ch;
+    if (marks.indexOf(ch) >= 0) {
+      if (buf.trim()) raw.push(buf.trim());
+      buf = '';
+    }
+  }
+  if (buf.trim()) raw.push(buf.trim());
+
+  if (maxLen) {
+    // 按长度切块，保证**每一块**都不超过上限：
+    // 单句本身超限时（整段只有逗号、没有句号）必须硬切，
+    // 否则这一句仍会被服务端截断，等于没修。
+    const out = [];
+    let cur = '';
+    for (const p of raw) {
+      if (p.length >= maxLen) {
+        if (cur) { out.push(cur); cur = ''; }
+        for (let k = 0; k < p.length; k += maxLen) out.push(p.slice(k, k + maxLen));
+        continue;
+      }
+      if (cur && cur.length + p.length > maxLen) { out.push(cur); cur = p; }
+      else { cur += p; }
+    }
+    if (cur) out.push(cur);
+    return out;
+  }
+
+  if (raw.length <= 1) return raw;
+  return [raw[0], raw.slice(1).join('')];
+}
+
+let playToken = 0;          // 递增令牌：换了新回复或点了停止，旧队列立即作废
+let currentAudios = [];     // 本批分句对应的音频元素
+let currentAudio = null;    // 正在播放的那一个
+let activeSpeakWrap = null; // 正在显示语音状态提示的消息元素
+
+/* 构造流式播放地址。
+   为什么不再用 fetch + Blob：Blob 必须**等整段下载完**才能播，
+   而云端是一个音频块一个音频块吐出来的——首字节约 1.7 秒到达，
+   但吐完还要再花约 0.5 秒。把地址直接交给 audio 元素，浏览器就能
+   边下边播，把这 0.5 秒也省掉。 */
+function ttsUrl(text, forcedEngine) {
+  const eng = forcedEngine || engine;
+  const p = new URLSearchParams({
+    text: text,
+    voice: onlineVoiceId,
+    // 语速改在播放端施加（playbackRate），这里固定传 0，
+    // 只让服务端处理「本轮情绪」带来的那部分语感变化
+    rate: '0',
+    emotion: currentEmotionKey
+  });
+  if (eng === 'fast') p.set('engine', 'fast');
+  return '/api/tts?' + p.toString();
+}
+
+/* 语音状态提示：首音要等 1.7 秒左右，没有提示会被误认为「点了没反应」。
+   准备中 → 朗读中 → 消失，让等待被说明，也不喧宾夺主。 */
+function setSpeakChip(wrapEl, state) {
+  if (!wrapEl) return;
+  if (activeSpeakWrap && activeSpeakWrap !== wrapEl) clearSpeakChip(activeSpeakWrap);
+  activeSpeakWrap = wrapEl;
+
+  let chip = wrapEl.querySelector('.speak-chip');
+  if (!chip) {
+    chip = document.createElement('div');
+    chip.className = 'speak-chip';
+    chip.innerHTML = '<span class="eq"><i></i><i></i><i></i></span><span class="txt"></span>';
+    wrapEl.appendChild(chip);
+  }
+  chip.classList.add('show');
+  chip.querySelector('.txt').textContent = state === 'prep' ? '语音准备中…' : '朗读中';
+  chip.classList.toggle('playing', state === 'playing');
+}
+
+function clearSpeakChip(wrapEl) {
+  if (!wrapEl) return;
+  const chip = wrapEl.querySelector('.speak-chip');
+  if (chip) chip.remove();
+  if (activeSpeakWrap === wrapEl) activeSpeakWrap = null;
+}
+
+function speakOnline(text, wrapEl, forcedEngine) {
+  const eng = forcedEngine || engine;
+  // 极速引擎单次文本上限 180 字，超出会被服务端截断（念到一半突然断掉），
+  // 因此这里保守按 150 字切块；在线合成没有这个限制，走两段式。
+  const parts = splitChunks(text, eng === 'fast' ? 150 : 0);
+  if (!parts.length) return;
+
+  const token = ++playToken;
+
+  // 两个片段**同时**建立音频元素并开始加载：合成是并行进行的，
+  // 第一句在播时，第二段（剩余内容的连贯整读）早已在流式加载，
+  // 句间衔接不会出现空档。
+  currentAudios = parts.map(function (part) {
+    const audio = new Audio();
+    audio.preload = 'auto';
+    audio.preservesPitch = true;      // 变速不变调
+    audio.playbackRate = playRate();  // 语速在本地施加（含各引擎的听感折算）
+    // 部分浏览器在元数据加载前会忽略 playbackRate，加载后再设一次更稳
+    audio.addEventListener('loadedmetadata', function () {
+      audio.playbackRate = playRate();
+    });
+    audio.src = ttsUrl(part, forcedEngine);
+    return audio;
+  });
+
+  playSequence(currentAudios, token, text, wrapEl, forcedEngine);
+}
+
+/* 顺序播放已预取的音频。 */
+async function playSequence(audios, token, fullText, wrapEl, forcedEngine) {
+  let playedAny = false;
+
+  for (let i = 0; i < audios.length; i++) {
+    if (token !== playToken) return;
+    if (i === 0) setSpeakChip(wrapEl, 'prep');
+
+    const result = await playOne(audios[i], token);
+    if (token !== playToken) return;
+
+    if (result === 'ok') {
+      playedAny = true;
+      setSpeakChip(wrapEl, 'playing');
+      continue;
+    }
+
+    if (!playedAny && i === 0 && !forcedEngine) {
+      // 第一句就失败。降级链：极速引擎 → 在线语音 → 本机语音 → 明确提示。
+      // 注意只在第一句失败时降级：中途某句失败就跳过，不打断整段朗读。
+      clearSpeakChip(wrapEl);
+      if (engine === 'fast' && onlineVoices.length) {
+        speakOnline(fullText, wrapEl, 'online');
+        return;
+      }
+      if (availableVoices.length) { localSpeak(fullText); return; }
+      toast('语音加载失败，请检查网络连接后重试', 3600);
+      return;
+    }
+    // 中间某句失败就跳过，不打断整段朗读
+  }
+
+  clearSpeakChip(wrapEl);
+}
+
+function playOne(audio, token) {
+  return new Promise(function (resolve) {
+    if (token !== playToken) { resolve('skip'); return; }
+    currentAudio = audio;
+
+    let settled = false;
+    function done(result) {
+      if (settled) return;
+      settled = true;
+      audio.onended = null;
+      audio.onerror = null;
+      if (result !== 'ok') { try { audio.pause(); } catch (e) { /* 忽略 */ } }
+      resolve(result);
+    }
+
+    audio.onended = function () { done('ok'); };
+    // 流式响应失败时（服务端返回 JSON 错误、断网）会走到这里
+    audio.onerror = function () { done('error'); };
+
+    const p = audio.play();
+    if (p && p.catch) {
+      p.catch(function () {
+        toast('浏览器拦截了自动播放，点一次顶部「试听」即可解锁', 4000);
+        done('blocked');
+      });
+    }
+  });
+}
+
+function localSpeak(text) {
+  if (!synth) return;
+  if (!currentVoice) loadVoices();
+  if (!currentVoice) { toast('本机没有可用语音包，请在顶部切换到在线语音'); return; }
+  synth.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.voice = currentVoice;
+  u.lang = currentVoice.lang;
+  u.rate = speechRate;
+  // 本机语音没有音量调制，只能调音调与语速。
+  // 音调按语气微调：危机语气略沉，轻快语气略亮，让本机引擎也有一点情绪差异。
+  const emoPitch = (currentEmotion && currentEmotion.pitch) || 0;
+  u.pitch = Math.max(0.6, Math.min(1.6, 1.04 + emoPitch / 60));
+  synth.speak(u);
+}
+
+/* 试听的加载反馈：在线合成首音约需 1~2 秒，期间让按钮呈"合成中"状态，
+   避免用户以为点了没有反应而反复点击。 */
+function flashPreviewLoading() {
+  const btn = document.getElementById('previewBtn');
+  if (!btn) return;
+  btn.classList.add('loading');
+  clearTimeout(btn._loadingTimer);
+  btn._loadingTimer = setTimeout(function () {
+    btn.classList.remove('loading');
+  }, 2600);
+}
+
+function previewVoice() {
+  const demo = '你好，我是知语，我会陪你把话说完。';
+  if (engine !== 'local') {
+    if (engine === 'online' && !onlineVoices.length) {
+      toast('在线语音不可用，请在顶部切换到本机语音');
+      return;
+    }
+    // 试听没有消息气泡可挂状态提示，就用按钮自身的加载态反馈那 1~2 秒
+    flashPreviewLoading();
+    speak(demo, true, null);
+    return;
+  }
+  if (!synth) { toast('此浏览器不支持本机语音合成，请切换到在线语音'); return; }
+  if (!currentVoice) {
+    loadVoices();
+    if (!currentVoice) { toast('本机未检测到语音包，请切换到在线语音'); return; }
+  }
+  speak(demo, true);
+}
+
+function stopSpeaking() {
+  playToken += 1;   // 作废正在播放/预取的分句队列
+  if (synth) synth.cancel();
+
+  (currentAudios || []).forEach(function (a) {
+    try { a.pause(); } catch (e) { /* 忽略 */ }
+    // 清掉 src 并 load()：中断尚未下载完的流式请求，不继续占用连接
+    try { a.removeAttribute('src'); a.load(); } catch (e) { /* 忽略 */ }
+  });
+  currentAudios = [];
+  currentAudio = null;
+  clearSpeakChip(activeSpeakWrap);
+}
+
+function toggleVoice() {
+  const btn = document.getElementById('voiceBtn');
+  const bar = document.getElementById('voiceBar');
+  const label = document.getElementById('voiceLabel');
+
+  if (!onlineVoices.length && !availableVoices.length) {
+    label.textContent = '不可用';
+    btn.classList.remove('on');
+    toast('当前没有可用的语音引擎，请检查网络后刷新页面', 3600);
+    return;
+  }
+
+  voiceOn = !voiceOn;
+  btn.classList.toggle('on', voiceOn);
+  bar.classList.toggle('show', voiceOn);
+  label.textContent = voiceOn ? '朗读开' : '朗读关';
+
+  if (voiceOn) {
+    previewVoice();
+  } else {
+    stopSpeaking();
+  }
+}
+
+/* ══════════ 语音输入（STT） ══════════ */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recog = null;
+let listening = false;
+
+if (SR) {
+  recog = new SR();
+  recog.lang = 'zh-CN';
+  recog.interimResults = true;
+  recog.continuous = false;
+
+  recog.onresult = function (e) {
+    let text = '';
+    for (const r of e.results) text += r[0].transcript;
+    input.value = text;
+  };
+  recog.onend = function () {
+    listening = false;
+    document.getElementById('micBtn').classList.remove('listening');
+    if (input.value.trim()) send();
+  };
+  recog.onerror = function (e) {
+    listening = false;
+    document.getElementById('micBtn').classList.remove('listening');
+    if (e.error === 'not-allowed') toast('麦克风权限被拒绝，请在地址栏允许麦克风访问', 3200);
+    else if (e.error !== 'aborted') toast('语音识别暂不可用（' + e.error + '）');
+  };
+}
+
+function toggleMic() {
+  if (!recog) return;
+  if (listening) { recog.abort(); return; }
+  stopSpeaking();
+  listening = true;
+  input.value = '';
+  document.getElementById('micBtn').classList.add('listening');
+  toast('正在听你说……', 1200);
+  try { recog.start(); } catch (err) { /* 重复 start 可忽略 */ }
+}
+
+/* ══════════ 消息渲染 ══════════ */
+function addMsg(role, text, strategy, blocked, speakIt, emotionLabel, emotionKey) {
   const wrap = document.createElement('div');
-  wrap.className = 'msg ' + role + (blocked ? ' crisis' : '');
+  // 语气也参与视觉：危机语气（警觉/坚定）额外加强，温柔/轻快则更柔和
+  const emoClass = (role === 'bot' && emotionKey) ? ' emo-' + emotionKey : '';
+  wrap.className = 'msg ' + role + (blocked ? ' crisis' : '') + emoClass;
+
+  const row = document.createElement('div');
+  row.className = 'row';
+  if (role === 'bot') {
+    const av = document.createElement('div');
+    av.className = 'mini-avatar';
+    av.textContent = blocked ? '安' : '知';
+    row.appendChild(av);
+  }
 
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
   bubble.textContent = text;
-  wrap.appendChild(bubble);
+  row.appendChild(bubble);
+  wrap.appendChild(row);
 
-  if (strategy) {
+  if (blocked) {
+    // 只在安全边界介入时才出现提示，且不再展示策略代号与语气——
+    // 处于危机中的用户不需要看懂内部机制，只需要知道「有人在认真对待」。
     const tag = document.createElement('div');
     tag.className = 'tag';
-    tag.textContent = blocked ? '安全边界已介入 · ' + strategy : '策略：' + strategy;
+    tag.innerHTML = '<span class="dot"></span>';
+    tag.appendChild(document.createTextNode('安全边界已介入'));
     wrap.appendChild(tag);
   }
 
   chat.appendChild(wrap);
   chat.scrollTop = chat.scrollHeight;
+  // 把消息元素交给朗读逻辑：语音准备/朗读状态提示会挂在它下面
+  if (role === 'bot' && speakIt !== false) speak(text, false, wrap);
+}
+
+function setCrisisBar(show) {
+  document.getElementById('crisisBar').classList.toggle('show', !!show);
+}
+
+function showChips() {
+  const items = [
+    '最近心里闷闷的，说不上来是哪里不对',
+    '这周考试考砸了，有点难受',
+    '和朋友闹了点矛盾，心里堵得慌'
+  ];
+  const box = document.createElement('div');
+  box.className = 'chips';
+  items.forEach(t => {
+    const c = document.createElement('button');
+    c.className = 'chip';
+    c.textContent = t;
+    c.onclick = () => { box.remove(); input.value = t; send(); };
+    box.appendChild(c);
+  });
+  chat.appendChild(box);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function showTyping() {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg bot';
+  wrap.id = 'typing';
+  const row = document.createElement('div');
+  row.className = 'row';
+  const av = document.createElement('div');
+  av.className = 'mini-avatar';
+  av.textContent = '知';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.innerHTML = '<span class="typing"><span></span><span></span><span></span></span>';
+  row.appendChild(av); row.appendChild(bubble);
+  wrap.appendChild(row);
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function hideTyping() {
+  const t = document.getElementById('typing');
+  if (t) t.remove();
+}
+
+function showErrorCard(msg) {
+  const card = document.createElement('div');
+  card.className = 'error-card';
+  card.innerHTML =
+    '<h4>没有连上服务</h4>' +
+    '<p>' + msg + '</p>' +
+    '<p>请确认服务正在运行（命令行窗口不要关闭），然后通过服务地址访问本页面，' +
+    '而不是直接打开 index.html 文件：</p>' +
+    '<code>' + location.origin + '/</code>' +
+    '<button class="primary" onclick="retryConnect()">重试连接</button>';
+  chat.appendChild(card);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+/* ══════════ 会话管理（含失效自愈） ══════════ */
+async function createSession(silent) {
+  const res = await fetch('/api/session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ note: '' })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  sid = data.sid;
+  if (!silent) {
+    const greeting = '你好，我在的。\n\n想说什么都可以，不用急着组织好语言。如果现在只是觉得闷、觉得空，也可以就这么待着。';
+    addMsg('bot', greeting, '', false, false);
+    showChips();
+  }
+  return sid;
 }
 
 async function init() {
+  chat.innerHTML = '';
+  setCrisisBar(false);
   try {
-    const res = await fetch('/api/session', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({note: ''})
-    });
-    const data = await res.json();
-    if (data.error) {
-      addMsg('bot', data.error);
-      return;
-    }
-    sid = data.sid;
-    addMsg('bot', '你好，我在的。\n\n想说什么都可以，不用急着组织好语言。如果现在只是觉得闷、觉得空，也可以就这么待着。');
-  } catch (e) {
-    addMsg('bot', '连接服务失败，请确认命令行窗口的服务仍在运行。');
+    await createSession(false);
+  } catch (err) {
+    showErrorCard(String(err.message || err));
   }
 }
 
+async function retryConnect() {
+  toast('正在重试……', 1200);
+  await init();
+}
+
+/* 会话失效后的自动恢复：
+   服务端的会话有 TTL，服务也可能重启过。此时旧 sid 已无效，
+   早期版本会让界面一直报错——用户只能手动刷新，体验上就是「点了没反应」。
+   现在改为捕获 session_expired 后自动新建会话并重放本轮消息。 */
+async function ensureSession() {
+  try {
+    await fetch('/api/session', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ note: '' })
+    }).then(r => r.json()).then(d => {
+      if (d.sid) sid = d.sid;
+    });
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/* ══════════ 发送 ══════════ */
 async function send() {
   const text = input.value.trim();
-  if (!text || !sid) return;
+  if (!text || busy) return;
+  if (!sid) {
+    const ok = await ensureSession().then(() => !!sid);
+    if (!ok) { toast('服务未连接，请先启动服务后重试'); return; }
+  }
+
   input.value = '';
-  addMsg('user', text);
+  stopSpeaking();
+  addMsg('user', text, '', false, false);
+  busy = true;
+  sendBtn.disabled = true;
+  showTyping();
 
   try {
-    const res = await fetch('/api/chat', {
+    let res = await fetch('/api/chat', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({sid, message: text})
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sid, message: text })
     });
-    const data = await res.json();
+    let data = await res.json();
+
+    // 会话失效 → 自动重建后重试一次，用户不需要做任何操作
+    if (data.code === 'session_expired' || (res.status === 404 && !data.reply)) {
+      await ensureSession();
+      res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sid, message: text })
+      });
+      data = await res.json();
+      if (!data.error) toast('会话已自动恢复');
+    }
+
+    hideTyping();
     if (data.error) {
-      addMsg('bot', data.error);
+      addMsg('bot', data.error, '', false, false);
       return;
     }
-    addMsg('bot', data.reply, data.strategy, data.blocked);
-  } catch (e) {
-    addMsg('bot', '请求失败，请稍后再试。');
+
+    // 服务端已按用户本轮情绪判定语气：先落到全局状态，
+    // 后续请求音频与本地朗读都会用到它
+    const emo = data.emotion || {};
+    currentEmotionKey = emo.key || 'warm';
+    currentEmotion = emo;
+    addMsg('bot', data.reply, data.strategy, data.blocked, true, emo.label, emo.key);
+    setCrisisBar(data.crisis_active);
+  } catch (err) {
+    hideTyping();
+    showErrorCard('请求发送失败（' + (err.message || '网络异常') + '）。');
+  } finally {
+    busy = false;
+    sendBtn.disabled = false;
+    input.focus();
   }
 }
 
+/* ══════════ 重新开始 ══════════ */
 async function resetSession() {
-  if (!sid) return;
-  await fetch('/api/reset', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({sid})
-  });
-  chat.innerHTML = '';
-  document.getElementById('stats').classList.remove('show');
-  addMsg('bot', '重新开始。想说什么都可以。');
+  if (busy) return;
+  stopSpeaking();
+  setCrisisBar(false);
+  try {
+    const res = await fetch('/api/reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sid })
+    });
+    const data = await res.json();
+
+    // 旧会话已过期时，服务端会返回一个新的 sid，直接接过来用
+    if (data.sid) sid = data.sid;
+
+    if (data.error) {
+      toast(data.error);
+      await init();
+      return;
+    }
+    chat.innerHTML = '';
+    document.getElementById('stats').classList.remove('show');
+    addMsg('bot', '重新开始。想说什么都可以。', '', false, false);
+    showChips();
+    if (data.recovered) toast('原会话已过期，已为你开启新的对话');
+  } catch (err) {
+    // 连不上服务时不能什么都不做——否则用户看到的就是「点了没反应」
+    showErrorCard('重置失败，服务似乎没有响应。');
+  }
 }
 
+/* ══════════ 统计 ══════════ */
 async function toggleStats() {
-  if (!sid) return;
-  const res = await fetch('/api/stats?sid=' + sid);
-  const stats = await res.json();
   const box = document.getElementById('stats');
-
-  if (stats.error) return;
-  if (Object.keys(stats).length === 0) {
-    box.innerHTML = '<h3>统计</h3><div class="row">还没有数据</div>';
+  if (!sid) {
+    box.innerHTML = '<h3>统计</h3><div class="srow">还没有开始对话</div>';
     box.classList.add('show');
     return;
   }
-
-  let html = '<h3>本次对话统计</h3>';
-  for (const [k, v] of Object.entries(stats)) {
-    if (k === '策略分布') {
-      html += '<div class="row"><span>策略分布</span></div>';
-      for (const [name, count] of Object.entries(v)) {
-        html += '<div class="row" style="padding-left:12px"><span>' + name + '</span><span>' + count + '</span></div>';
-      }
-    } else if (k === '策略执行偏差' && Array.isArray(v)) {
-      if (v.length > 0) {
-        html += '<div class="issue">' + v.join('<br>') + '</div>';
-      }
-    } else {
-      html += '<div class="row"><span>' + k + '</span><span>' + v + '</span></div>';
+  try {
+    const res = await fetch('/api/stats?sid=' + encodeURIComponent(sid));
+    const stats = await res.json();
+    if (stats.error) {
+      box.innerHTML = '<h3>统计</h3><div class="srow">会话已过期，请重新开始</div>';
+      box.classList.add('show');
+      return;
     }
+    if (Object.keys(stats).length === 0) {
+      box.innerHTML = '<h3>统计</h3><div class="srow">本次还没有对话数据</div>';
+      box.classList.add('show');
+      return;
+    }
+    let html = '<h3>本次对话统计</h3>';
+    for (const [k, v] of Object.entries(stats)) {
+      if (k === '策略分布') {
+        html += '<div class="srow"><span>策略分布</span></div>';
+        for (const [name, count] of Object.entries(v)) {
+          html += '<div class="srow" style="padding-left:12px"><span>' + name + '</span><span>' + count + '</span></div>';
+        }
+      } else if (k === '策略执行偏差' && Array.isArray(v)) {
+        if (v.length > 0) html += '<div class="issue">' + v.join('<br>') + '</div>';
+      } else {
+        html += '<div class="srow"><span>' + k + '</span><span>' + v + '</span></div>';
+      }
+    }
+    box.innerHTML = html;
+    box.classList.toggle('show');
+    box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch (err) {
+    box.innerHTML = '<h3>统计</h3><div class="srow">获取失败，请检查服务是否在运行</div>';
+    box.classList.add('show');
   }
-  box.innerHTML = html;
-  box.classList.toggle('show');
 }
 
+/* ══════════ 保存记录 ══════════ */
 async function saveLog() {
-  if (!sid) return;
+  if (!sid) { toast('还没有对话可以保存'); return; }
   const note = prompt('给这次对话加个备注（便于日后区分，例如「同学A试用」）：', '');
   if (note === null) return;
-
-  const res = await fetch('/api/save', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({sid, note})
-  });
-  const data = await res.json();
-  if (data.error) {
-    alert(data.error);
-    return;
+  try {
+    const res = await fetch('/api/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sid, note })
+    });
+    const data = await res.json();
+    if (data.error) { toast(data.error, 3000); return; }
+    toast('记录已保存到 logs/ 目录');
+  } catch (err) {
+    toast('保存失败：服务未响应', 3000);
   }
-  alert('已保存到：\n' + data.md);
 }
 
-input.addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') send();
-});
+input.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
 
 init();
 </script>

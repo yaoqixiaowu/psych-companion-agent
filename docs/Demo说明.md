@@ -36,8 +36,9 @@
 ### 方式 B：命令行
 
 ```powershell
-cd D:\未来技术习题二
-.\.venv\Scripts\python.exe web.py
+# 注意项目是「两层同名目录」，根目录在里层
+cd "$env:USERPROFILE\Desktop\未来技术习题二\未来技术习题二"
+.\.venv-local\Scripts\python.exe web.py
 ```
 
 然后浏览器访问 http://127.0.0.1:5000
@@ -48,8 +49,8 @@ cd D:\未来技术习题二
 ### 方式 C：纯命令行对话（无界面）
 
 ```powershell
-cd D:\未来技术习题二
-.\.venv\Scripts\python.exe main.py
+cd "$env:USERPROFILE\Desktop\未来技术习题二\未来技术习题二"
+.\.venv-local\Scripts\python.exe main.py
 ```
 
 界面如下：
@@ -74,15 +75,26 @@ cd D:\未来技术习题二
 
 ## 三、首次运行前的准备
 
+> **通常可以直接跳过本节。** 项目自带 `.venv-local` 运行环境和启动脚本，
+> 双击 `启动知语.bat` 就能跑。本节是给需要重新配环境的人看的。
+
 如果 `.env` 文件已配置且依赖已安装，可直接跳到第二步。
 
 ### 第一步：安装依赖
 
+**优先方案**：直接用自带的 `.venv-local`，不需要安装任何东西。
+若环境缺失（例如换了电脑），双击 **`修复运行环境.bat`** 即可重建。
+
+**手动方案**：
+
 ```powershell
-python -m venv .venv
-.venv\Scripts\activate
+python -m venv .venv-local
+.venv-local\Scripts\activate
 pip install -r requirements.txt
 ```
+
+> ⚠️ 仓库里的 `.venv` 是在**另一台机器上创建的**（`pyvenv.cfg` 指向 `C:\Users\wuxiangping`），
+> 在本机不可用，请改用 `.venv-local`。
 
 ### 第二步：配置 API 密钥
 
@@ -106,7 +118,7 @@ DEEPSEEK_API_KEY=sk-你的真实密钥
 ### 第三步：验证连通性
 
 ```powershell
-.\.venv\Scripts\python.exe scripts\test_api.py
+.\.venv-local\Scripts\python.exe scripts\test_api.py
 ```
 
 成功输出：
@@ -209,26 +221,33 @@ DEEPSEEK_API_KEY=sk-你的真实密钥
 
 ### 局域网方式（推荐）
 
-**双击项目根目录下的 `启动知语-局域网.bat`**
-
-会出现一个黑色命令行窗口，显示可访问的地址：
+**双击项目根目录下的 `启动知语-局域网.bat`**，窗口里会打印出可访问的地址：
 
 ```
 同一网络内可用以下地址访问：
-  http://10.134.53.221:5000    (你的电脑名)
+  http://10.x.x.x:5000    (你的电脑名)
 ```
 
 把这个地址发给同学即可。**对话记录会直接保存到你电脑的 `logs/` 目录**，无需收集文件。
+**地址每次可能不同，以窗口显示为准。**
 
 **这个窗口要一直开着。** 它是服务主进程，关闭窗口 = 停止服务，其他人将无法访问。
 
 也可以用命令行启动：
 
 ```powershell
-cd D:\未来技术习题二
+cd "$env:USERPROFILE\Desktop\未来技术习题二\未来技术习题二"
 $env:PSYCH_HOST="0.0.0.0"
-.\.venv\Scripts\python.exe web.py
+.\.venv-local\Scripts\python.exe web.py
 ```
+
+> ⚠️ **关于对话记录——这里有一个容易踩的坑**：
+> 网页版**不会自动保存对话**。只有同学**主动点页面右上角的「保存记录」并填个备注**，
+> 这段对话才会写到你电脑的 `logs/` 目录。不点的话，它只存在服务器内存里，
+> **2 小时不用或被重启就永久丢失**。
+>
+> 所以发给同学链接时，**务必一并说明「聊完点一下保存记录」**，否则拿不到试用证据。
+
 
 **前提条件**
 
@@ -247,6 +266,8 @@ $env:PSYCH_HOST="0.0.0.0"
 | 昨天能用今天不行 | IP 变了 | 校园网 IP 通常每次连接不同，需重新查看窗口显示的地址 |
 | 窗口开着但访问不了 | 防火墙拦截 | 检查 Windows 防火墙是否允许 Python |
 
+> 若本机防火墙处于关闭状态，则一般不需要额外设置。
+
 > ⚠️ **安全提醒**：当前版本没有登录验证，同网络内任何人都能访问并消耗 API 额度。
 > 仅建议在可信的校园网或家庭网络使用，不要暴露到公网。
 
@@ -257,11 +278,15 @@ $env:PSYCH_HOST="0.0.0.0"
 | 现象 | 原因 | 解决 |
 |---|---|---|
 | 浏览器显示 ERR_CONNECTION_REFUSED | 服务未启动，或地址缺端口 | 启动服务；确认地址是 `http://127.0.0.1:5000` |
-| `Python was not found` | Python 不在系统 PATH | 用 `.\.venv\Scripts\python.exe` 完整路径 |
-| `No module named 'dotenv'` | 未安装依赖 | `pip install -r requirements.txt` |
+| `Python was not found` | Python 不在系统 PATH | 用 `.\.venv-local\Scripts\python.exe` 完整路径 |
+| `No module named 'dotenv'` | 未安装依赖 | 双击 `修复运行环境.bat`，或 `pip install -r requirements.txt` |
+| 双击启动脚本一闪就退出 | `.venv` 失效（是别的机器上建的） | 双击 **`修复运行环境.bat`** 重建 `.venv-local` |
 | 提示未检测到 API 密钥 | `.env` 未配置或未重启服务 | 检查 `.env` 文件，改完后重启程序 |
-| 端口被占用 | 5000 端口已有进程 | 关闭占用程序，或用 `set PSYCH_PORT=5001` 换端口 |
-| 同学连不上 | 网络不同或防火墙拦截 | 确认同一 WiFi；检查防火墙设置 |
+| 端口被占用 | 5000 端口已有进程 | 启动脚本会自动关掉旧服务；或 `set PSYCH_PORT=5001` 换端口 |
+| 同学连不上 | 网络不同或防火墙拦截 | 确认同一 WiFi；让对方关掉 VPN；本机先用 `127.0.0.1` 验证服务本身 |
+| 没有声音 / 语音包下拉是空的 | 本机系统**没有任何 TTS 语音包** | 顶部「发音引擎」选 **在线语音**（默认，无需装任何东西） |
+| 聊完的记录在 `logs/` 里找不到 | 网页版**不会自动保存** | 让试用者点页面右上角 **「保存记录」** 并填备注 |
+| 改了页面却看不到变化 | Flask 模板有缓存 | 重启服务（重新双击启动脚本即可） |
 
 ---
 
@@ -288,13 +313,16 @@ $env:PSYCH_HOST="0.0.0.0"
 
 | 想看什么 | 打开 |
 |---|---|
-| 网页 Demo | `python web.py` |
+| **自己怎么启动（给组员看）** | `启动说明.txt` |
+| 启动脚本 | `启动知语-局域网.bat` / `启动知语.bat` / `修复运行环境.bat` |
+| 网页 Demo | `python web.py`（或 `.\.venv-local\Scripts\python.exe web.py`） |
 | 命令行 Demo | `python main.py` |
 | 评测结果 | `eval/outputs/latest.json` |
-| 真实试用记录 | `logs/session_*.md` |
-| 试用记录分析 | `logs/试用记录汇总.md` |
+| **同学试用记录全文** | `logs/试用对话全文.md` |
+| 原始试用记录 | `logs/session_*.md` / `.json` |
+| 试用记录分析（作者自测） | `logs/试用记录汇总.md` |
 | 作业四项要求对照 | `docs/成果汇总.md` |
 | 竞品调研 | `docs/竞品调研.md` |
-| 开发过程 | `docs/开发日志.md` |
-| 开发节奏 | `docs/日程记录.md` |
+| 开发过程（按问题） | `docs/开发日志.md` |
+| 开发节奏（按时间） | `docs/日程记录.md` |
 | 系统设计 | `README.md` |
