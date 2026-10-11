@@ -1,0 +1,66 @@
+{
+  "session_id": "20261011_205322_191286",
+  "note": "吴4",
+  "started_at": "2026-10-11 20:53:22",
+  "ended_at": "2026-10-11 20:55:38",
+  "stats": {
+    "总轮数": 3,
+    "正常回复轮数": 3,
+    "边界拦截轮数": 0,
+    "平均回复长度": 26.0,
+    "最长回复长度": 37,
+    "最短回复长度": 19,
+    "提问轮次占比": 0.33,
+    "策略分布": {
+      "反映与共情": 1,
+      "探索与澄清": 1,
+      "支持与鼓励": 1
+    },
+    "策略执行偏差": "无",
+    "同策略最长连续": 1
+  },
+  "records": [
+    {
+      "turn": 0,
+      "user_input": "这周考试考砸了，有点难受",
+      "strategy": "反映与共情",
+      "emotion": "gentle",
+      "emotion_label": "温柔安抚",
+      "reply": "考砸了，心里不太好受吧。\n\n这周应该挺累的。",
+      "reply_length": 22,
+      "blocked": false,
+      "has_empty_comfort": false,
+      "has_overreach": false,
+      "has_open_question": false,
+      "timestamp": "20:54:22"
+    },
+    {
+      "turn": 1,
+      "user_input": "是的",
+      "strategy": "探索与澄清",
+      "emotion": "warm",
+      "emotion_label": "温和自然",
+      "reply": "嗯，那门考砸的，是你比较在意的科目吗？",
+      "reply_length": 19,
+      "blocked": false,
+      "has_empty_comfort": false,
+      "has_overreach": false,
+      "has_open_question": true,
+      "timestamp": "20:54:42"
+    },
+    {
+      "turn": 2,
+      "user_input": "是的",
+      "strategy": "支持与鼓励",
+      "emotion": "warm",
+      "emotion_label": "温和自然",
+      "reply": "在意的东西没考好，那种挫败感挺沉的。\n\n你还愿意说出来，没自己一个人闷着。",
+      "reply_length": 37,
+      "blocked": false,
+      "has_empty_comfort": false,
+      "has_overreach": false,
+      "has_open_question": false,
+      "timestamp": "20:54:51"
+    }
+  ]
+}
